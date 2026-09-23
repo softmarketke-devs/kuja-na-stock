@@ -103,7 +103,7 @@ sequenceDiagram
 ## Directory Structure
 
 ```
-supplier-hub/
+kuja-na-stock/
 ├── public/
 │   ├── icons/              # PWA manifest icons (192x192, 512x512, square)
 │   ├── favicon.ico         # Multi-size RGBA browser icon
@@ -153,8 +153,8 @@ supplier-hub/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/Glizocksama-2/supplier-hub.git
-cd supplier-hub
+git clone https://github.com/softmarketke-devs/kuja-na-stock.git
+cd kuja-na-stock
 ```
 
 ### 2. Install dependencies

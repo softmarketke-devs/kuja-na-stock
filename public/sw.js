@@ -1,5 +1,5 @@
-// Service Worker for Supplier Hub PWA
-const CACHE_NAME = 'supplier-hub-v1';
+// Service Worker for Kuja Na Stock PWA
+const CACHE_NAME = 'kuja-na-stock-v1';
 const ASSETS_TO_CACHE = [
   '/',
   '/manifest.json',
