@@ -43,11 +43,11 @@ export default function SignUpPage() {
           <div className="relative w-10 h-10 rounded-md overflow-hidden border border-orange-200 shrink-0 bg-orange-50 shadow-2xs">
             <img
               src="/icons/logo-square.png"
-              alt="Kuja Na Supply Logo"
+              alt="Kuja Na Stock Logo"
               className="w-full h-full object-cover"
             />
           </div>
-          <span className="text-xl font-black text-slate-900 uppercase tracking-tight">KUJA NA SUPPLY // OPS</span>
+          <span className="text-xl font-black text-slate-900 uppercase tracking-tight">KUJA NA STOCK // OPS</span>
         </Link>
         <p className="text-xs text-slate-500 uppercase tracking-wider">
           REGISTER NEW OPERATOR NODE // NAIROBI NETWORK

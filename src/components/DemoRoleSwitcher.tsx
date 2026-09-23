@@ -55,13 +55,13 @@ export function DemoRoleSwitcher() {
                 <div className="relative w-8 h-8 rounded-md overflow-hidden border border-orange-200 shrink-0 bg-orange-50 shadow-2xs group-hover:border-orange-400 transition-colors">
                   <img
                     src="/icons/logo-square.png"
-                    alt="Kuja Na Supply Logo"
+                    alt="Kuja Na Stock Logo"
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <div className="flex flex-col">
                   <div className="flex items-center gap-1.5 font-bold tracking-tight leading-none">
-                    <span className="text-slate-900 text-sm font-black">KUJA NA SUPPLY</span>
+                    <span className="text-slate-900 text-sm font-black">KUJA NA STOCK</span>
                     <span className="px-1 py-0.5 bg-orange-100 text-orange-700 text-[9px] font-black rounded-xs">KNS</span>
                   </div>
                   <span className="text-slate-400 text-[9px] hidden sm:inline leading-tight mt-0.5">NAIROBI LOGISTICS HUB</span>

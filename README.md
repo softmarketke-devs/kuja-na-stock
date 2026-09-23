@@ -1,4 +1,4 @@
-# Kuja Na Supply (KNS)
+# Kuja Na Stock (KNS)
 
 B2B commodity supply and boda dispatch Progressive Web App built for informal food retailers, wholesale depots, farm gates, and motorcycle couriers across Nairobi.
 
@@ -18,7 +18,7 @@ In Nairobi, more than 70% of food retail moves through informal kiosks (dukas an
 2. **Delivery App Mismatch:** Consumer delivery apps (Uber Eats, Glovo, Bolt Food) are designed for 1–3 kg restaurant meals with 25%+ commissions. They do not handle 50 kg sacks of dry maize, 40 kg bags of beans, or 30 kg crates of tomatoes.
 3. **Courier Exclusion:** Local stage-based boda boda riders lack access to scheduled B2B cargo runs, relying instead on unpredictable passenger gigs with long idle hours.
 
-Kuja Na Supply connects corner kiosks directly to bulk wholesale depots and farm gates, using local stage boda riders for on-demand cargo transport with zero broker markups.
+Kuja Na Stock connects corner kiosks directly to bulk wholesale depots and farm gates, using local stage boda riders for on-demand cargo transport with zero broker markups.
 
 ---
 
@@ -26,7 +26,7 @@ Kuja Na Supply connects corner kiosks directly to bulk wholesale depots and farm
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
-│                        KUJA NA SUPPLY PROTOCOL                         │
+│                         KUJA NA STOCK PROTOCOL                         │
 └────────────────────────────────────────────────────────────────────────┘
           │                                            │
           ▼                                            ▼

@@ -150,12 +150,12 @@ export default function HomePage() {
             <div className="relative w-8 h-8 rounded-md overflow-hidden border border-orange-200 shrink-0 bg-orange-50 shadow-2xs">
               <img
                 src="/icons/logo-square.png"
-                alt="Kuja Na Supply Logo"
+                alt="Kuja Na Stock Logo"
                 className="w-full h-full object-cover"
               />
             </div>
             <span className="text-slate-900 font-black tracking-tight text-sm uppercase">
-              KUJA NA SUPPLY // OPS HUD
+              KUJA NA STOCK // OPS HUD
             </span>
           </div>
 
@@ -220,14 +220,14 @@ export default function HomePage() {
               <div className="relative aspect-4/3 rounded-lg overflow-hidden border border-orange-100 bg-orange-50">
                 <img
                   src="/logo.jpg"
-                  alt="Kuja Na Supply Delivery Boda"
+                  alt="Kuja Na Stock Delivery Boda"
                   className="w-full h-full object-cover"
                 />
               </div>
               <div className="pt-1">
                 <div className="flex items-center justify-center gap-1.5 text-xs font-black text-slate-900 uppercase">
                   <span className="w-2 h-2 bg-orange-500 rounded-full animate-ping" />
-                  <span>KUJA NA SUPPLY BODA FLEET</span>
+                  <span>KUJA NA STOCK BODA FLEET</span>
                 </div>
                 <p className="text-[10px] text-slate-500 font-mono mt-0.5">
                   ON-DEMAND CARGO COURIERS // 12-20 MIN ETA
@@ -541,7 +541,7 @@ export default function HomePage() {
 
         {/* Quick Demo Footer */}
         <footer className="pt-8 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
-          <p>© 2026 KUJA NA SUPPLY // NAIROBI LOGISTICS CORRIDOR. BUILT FOR INFORMAL ECONOMIES.</p>
+          <p>© 2026 KUJA NA STOCK // NAIROBI LOGISTICS CORRIDOR. BUILT FOR INFORMAL ECONOMIES.</p>
           <div className="flex items-center gap-4">
             <Link href="/dashboard/retailer" className="hover:text-orange-600">RETAILER</Link>
             <Link href="/dashboard/wholesaler" className="hover:text-orange-600">WHOLESALER</Link>

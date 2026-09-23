@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the Kuja Na Supply (KNS) platform will be documented in this file.
+All notable changes to the Kuja Na Stock (KNS) platform will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `metadataBase` configuration in `layout.tsx` for social sharing graph cards.
 
 ### Changed
-- Rebranded platform identity to **Kuja Na Supply (KNS)** across manifests, store states, and page titles.
+- Rebranded platform identity to **Kuja Na Stock (KNS)** across manifests, store states, and page titles.
 - Complete theme overhaul from dark brutalist palette to an accessible **White & Orange** high-contrast field design (`#ffffff` surfaces, `#f8fafc` substrate, `#ea580c` action triggers).
 - Integrated Google Font **Inconsolata** with optical sizing across all numerical telemetry and tabular data displays.
 
@@ -40,7 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2026-09-20
 
 ### Added
-- Initial release of the Kuja Na Supply B2B dispatch architecture.
+- Initial release of the Kuja Na Stock B2B dispatch architecture.
 - 4 interactive operator nodes:
   - Retailer Kiosk HUD (`/dashboard/retailer`)
   - Bulk Wholesale Terminal (`/dashboard/wholesaler`)

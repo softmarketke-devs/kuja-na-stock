@@ -1,6 +1,6 @@
 # Implementation Tracking & Architecture Log
 
-Engineering progression, architectural decisions, and development roadmap for **Kuja Na Supply (KNS)**.
+Engineering progression, architectural decisions, and development roadmap for **Kuja Na Stock (KNS)**.
 
 ---
 
