@@ -2,8 +2,8 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Kuja Na Supply PWA',
-    short_name: 'KujaNaSupply',
+    name: 'Kuja Na Stock PWA',
+    short_name: 'KujaNaStock',
     description: 'B2B commodity supply & boda dispatch platform connecting retailers, wholesalers, farmers, and boda riders across East Africa.',
     start_url: '/',
     display: 'standalone',

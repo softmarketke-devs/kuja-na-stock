@@ -77,9 +77,9 @@ export const DEMO_PROFILES: Record<UserRole, Profile> = {
     id: 'user-admin-1',
     role: 'admin',
     full_name: 'System Admin',
-    email: 'admin@kujanasupply.co.ke',
+    email: 'admin@kujanastock.co.ke',
     phone: '+254 700 000 000',
-    business_name: 'Kuja Na Supply Central Operations',
+    business_name: 'Kuja Na Stock Central Operations',
     location: null,
     address: 'Nairobi Central',
     is_verified: true,
@@ -921,7 +921,7 @@ export const useAppStore = create<AppState>()(
       },
     }),
     {
-      name: 'kuja-na-supply-master-store',
+      name: 'kuja-na-stock-master-store',
     }
   )
 )

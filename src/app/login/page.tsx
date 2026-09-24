@@ -45,11 +45,11 @@ export default function LoginPage() {
           <div className="relative w-10 h-10 rounded-md overflow-hidden border border-orange-200 shrink-0 bg-orange-50 shadow-2xs">
             <img
               src="/icons/logo-square.png"
-              alt="Kuja Na Supply Logo"
+              alt="Kuja Na Stock Logo"
               className="w-full h-full object-cover"
             />
           </div>
-          <span className="text-xl font-black text-slate-900 uppercase tracking-tight">KUJA NA SUPPLY // OPS</span>
+          <span className="text-xl font-black text-slate-900 uppercase tracking-tight">KUJA NA STOCK // OPS</span>
         </Link>
         <p className="text-xs text-slate-500 uppercase tracking-wider">
           AUTHENTICATE TERMINAL SESSION // NAIROBI NETWORK
@@ -130,7 +130,7 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="operator@kujanasupply.co.ke"
+                placeholder="operator@kujanastock.co.ke"
                 className="w-full bg-slate-50 border border-slate-300 text-slate-900 py-2 px-3 font-mono font-bold focus:border-orange-500 focus:bg-white outline-none"
               />
             </div>
