@@ -49,9 +49,9 @@ export const DEMO_PROFILES: Record<UserRole, Profile> = {
     full_name: 'Peter Njoroge',
     email: 'peter@greenvalley.co.ke',
     phone: '+254 733 999 888',
-    business_name: 'Green Valley Farmers Co-op',
-    location: { type: 'Point', coordinates: [36.721, -1.218] }, // Kiambu / Limuru road
-    address: 'Limuru Agricultural Corridor, Kiambu',
+    business_name: 'Wangige & Ruaka Urban Farm Co-op',
+    location: { type: 'Point', coordinates: [36.721, -1.218] }, // Kiambu / Ruaka / Wangige belt
+    address: 'Ruaka-Wangige Urban Agriculture Belt (4.8 km)',
     is_verified: true,
     is_active: true,
     elevenlabs_voice_id: null,
@@ -281,7 +281,7 @@ export const INITIAL_LISTINGS: SupplierListing[] = [
     distance_km: 3.2,
     total_delivery_fee: 160,
   },
-  // Farmer listings (Further in Limuru / Kiambu, cheaper farm gate rate, longer Boda transit)
+  // Urban Farmer listings (Close proximity in Ruaka / Wangige / Kiambu, 4.8 km, direct farm gate rates)
   {
     id: 'list-4',
     supplier_id: 'user-farmer-1',

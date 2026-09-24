@@ -35,7 +35,7 @@ export function DemoRoleSwitcher() {
   const roles: { role: UserRole; code: string; label: string; path: string; name: string }[] = [
     { role: 'retailer', code: '01', label: 'RETAILER', path: '/dashboard/retailer', name: 'MAMA SARAH' },
     { role: 'wholesaler', code: '02', label: 'WHOLESALE', path: '/dashboard/wholesaler', name: 'KILIMO TRADERS' },
-    { role: 'farmer', code: '03', label: 'FARM GATE', path: '/dashboard/farmer', name: 'GREEN VALLEY' },
+    { role: 'farmer', code: '03', label: 'URBAN FARM', path: '/dashboard/farmer', name: 'WANGIGE AGRO' },
     { role: 'boda_rider', code: '04', label: 'BODA DISPATCH', path: '/dashboard/boda_rider', name: 'JAMES BODA' },
   ]
 
