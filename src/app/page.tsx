@@ -25,12 +25,12 @@ const COMMODITY_RADAR_DATA = [
     unit: 'kg',
     batch: '50 kg',
     cheapest: {
-      supplier: 'Green Valley Farm Gate',
+      supplier: 'Wangige Urban Farm Gate',
       unitPrice: 40,
-      distance: '6.8 km',
-      eta: '~20 min',
-      total: 2306,
-      savings: 104,
+      distance: '5.2 km',
+      eta: '~16 min',
+      total: 2234,
+      savings: 176,
     },
     fastest: {
       supplier: 'Kilimo Traders Wholesale',
@@ -38,9 +38,9 @@ const COMMODITY_RADAR_DATA = [
       distance: '3.2 km',
       eta: '~12 min',
       total: 2410,
-      timeSaved: '8 min',
+      timeSaved: '4 min',
     },
-    guidance: 'Save KSh 104 via Farm Gate, or pay KSh 104 more to receive shipment 8 min earlier via local wholesale depot.',
+    guidance: 'Save KSh 176 via Wangige Urban Farm, or receive 4 min earlier from Kilimo Wholesale depot.',
   },
   {
     name: 'Plum Salad Tomatoes',
@@ -48,12 +48,12 @@ const COMMODITY_RADAR_DATA = [
     unit: 'kg',
     batch: '30 kg',
     cheapest: {
-      supplier: 'Green Valley Farm Gate',
+      supplier: 'Ruaka Greenhouse Farm',
       unitPrice: 65,
-      distance: '6.8 km',
-      eta: '~20 min',
-      total: 2256,
-      savings: 304,
+      distance: '4.8 km',
+      eta: '~15 min',
+      total: 2166,
+      savings: 394,
     },
     fastest: {
       supplier: 'Kilimo Traders Wholesale',
@@ -61,9 +61,9 @@ const COMMODITY_RADAR_DATA = [
       distance: '3.2 km',
       eta: '~12 min',
       total: 2560,
-      timeSaved: '8 min',
+      timeSaved: '3 min',
     },
-    guidance: 'Substantial KSh 304 margin improvement direct from farm. Kilimo Traders is best for urgent lunch rush replenishment.',
+    guidance: 'Substantial KSh 394 margin improvement direct from Ruaka greenhouse with only 3 min difference.',
   },
   {
     name: 'Rosecoco Clean Beans',
@@ -71,12 +71,12 @@ const COMMODITY_RADAR_DATA = [
     unit: 'kg',
     batch: '40 kg',
     cheapest: {
-      supplier: 'Green Valley Farm Gate',
+      supplier: 'Kiambu Peri-Urban Gate',
       unitPrice: 110,
-      distance: '6.8 km',
-      eta: '~20 min',
-      total: 4706,
-      savings: 454,
+      distance: '5.5 km',
+      eta: '~17 min',
+      total: 4647,
+      savings: 513,
     },
     fastest: {
       supplier: 'Kilimo Traders Wholesale',
@@ -84,9 +84,9 @@ const COMMODITY_RADAR_DATA = [
       distance: '3.2 km',
       eta: '~12 min',
       total: 5160,
-      timeSaved: '8 min',
+      timeSaved: '5 min',
     },
-    guidance: 'Direct Limuru harvest delivers KSh 454 net savings on 40kg sacks with reliable courier dispatch.',
+    guidance: 'Direct peri-urban harvest delivers KSh 513 net savings on 40kg sacks with 17-min courier dispatch.',
   },
   {
     name: 'Shangi Irish Potatoes',
@@ -94,12 +94,12 @@ const COMMODITY_RADAR_DATA = [
     unit: 'kg',
     batch: '50 kg',
     cheapest: {
-      supplier: 'Green Valley Farm Gate',
+      supplier: 'Wangige Urban Farm Gate',
       unitPrice: 42,
-      distance: '6.8 km',
-      eta: '~20 min',
-      total: 2406,
-      savings: 654,
+      distance: '5.2 km',
+      eta: '~16 min',
+      total: 2334,
+      savings: 726,
     },
     fastest: {
       supplier: 'Kilimo Traders Wholesale',
@@ -107,9 +107,9 @@ const COMMODITY_RADAR_DATA = [
       distance: '3.2 km',
       eta: '~12 min',
       total: 3060,
-      timeSaved: '8 min',
+      timeSaved: '4 min',
     },
-    guidance: 'Heavy commodity: farm gate saves a massive KSh 654 per 50kg bag even after long-range Boda carrier fees.',
+    guidance: 'Heavy commodity: urban farm gate saves KSh 726 per 50kg bag with rapid 16-min Boda delivery.',
   },
 ]
 
@@ -127,13 +127,15 @@ export default function HomePage() {
           </div>
 
           <div className="flex items-center gap-6 overflow-x-auto whitespace-nowrap text-slate-600 font-semibold">
-            <span>[WAKULIMA: MAIZE KSH 40/KG]</span>
+            <span>[WAKULIMA DEPOT: MAIZE KSH 45/KG]</span>
             <span className="text-slate-300">•</span>
-            <span>[GIKOMBA: BEANS KSH 120/KG]</span>
+            <span className="text-emerald-600 font-bold">[RUAKA URBAN FARM: TOMATOES KSH 65/KG (4.8 KM)]</span>
             <span className="text-slate-300">•</span>
-            <span>[LIMURU FARM GATE: TOMATOES KSH 60/KG]</span>
+            <span>[MULTIPLE TRANSPARENT PRICE OPTIONS // ZERO OPAQUE BROKER FEES]</span>
             <span className="text-slate-300">•</span>
-            <span className="text-orange-600 font-bold">[BODA DISPATCH: 42 RIDERS AVAILABLE]</span>
+            <span className="text-orange-600 font-bold">[ZERO 4 AM MARKET COMMUTES // 15-MIN BODA RESTOCK]</span>
+            <span className="text-slate-300">•</span>
+            <span className="text-slate-400">[EXPANSION HORIZON: INTER-COUNTY & CROSS-BORDER FREIGHT]</span>
           </div>
 
           <div className="hidden md:flex items-center gap-3 shrink-0 text-slate-400">
@@ -183,17 +185,17 @@ export default function HomePage() {
           <div className="space-y-4 lg:col-span-8">
             <div className="inline-flex items-center gap-2 border border-orange-200 bg-orange-50 px-2.5 py-1 text-[11px] text-orange-700 font-bold">
               <Radio className="w-3.5 h-3.5 animate-pulse text-orange-600" />
-              <span>PWA LOGISTICS ENGINE // EAST AFRICA CORRIDOR</span>
+              <span>MVP SCOPE // URBAN FARM PROXIMITY & ZERO-COMMUTE B2B LOGISTICS</span>
             </div>
 
             <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black text-slate-900 tracking-tighter uppercase leading-[0.95]">
-              DIRECT COMMODITY SUPPLY.
+              DIRECT URBAN FARM SUPPLY.
               <br />
-              <span className="text-orange-600">INSTANT BODA DISPATCH.</span>
+              <span className="text-orange-600">ZERO 4 AM MARKET RUNS.</span>
             </h1>
 
             <p className="text-slate-600 text-sm sm:text-base max-w-3xl leading-relaxed">
-              Eliminate broker fees. Connect informal kiosk retailers directly with bulk wholesalers and Limuru farm gates. Automated low-stock alarms, real-time Boda delivery routing, and hands-free voice orders.
+              Eliminate opaque broker pricing. Connect neighborhood kiosks directly with urban farms in close proximity (3–8 km) and wholesale depots. Multiple transparent price options, automated low-stock alarms, and 15-minute Boda delivery right to your counter.
             </p>
 
             <div className="pt-2 flex flex-wrap items-center gap-3">
@@ -236,6 +238,86 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+
+        {/* MVP Core Value Proposition & Expansion Roadmap */}
+        <section className="p-6 bg-white border border-slate-200 shadow-xs space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
+                <h2 className="text-sm font-black text-slate-900 uppercase tracking-wider">
+                  MVP CORE VALUE PROPOSITION // SOLVING INFORMAL RETAIL FRICTION
+                </h2>
+              </div>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                Initial MVP focuses on urban farms in close proximity (3–10 km) to validate fast unit economics, with a scalable foundation for inter-county & multi-modal freight.
+              </p>
+            </div>
+            <span className="px-2.5 py-1 bg-orange-50 border border-orange-200 text-orange-700 text-[10px] font-bold uppercase shrink-0">
+              PHASE 1: URBAN AGRO PROXIMITY
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {/* Benefit 1 */}
+            <div className="p-4 bg-slate-50 border border-slate-200 space-y-2 relative">
+              <div className="flex items-center justify-between">
+                <span className="text-orange-600 font-bold text-xs">[BENEFIT 01]</span>
+                <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-800 text-[9px] font-black rounded-xs">TRANSPARENT RATES</span>
+              </div>
+              <h3 className="text-sm font-black text-slate-900 uppercase">
+                MULTIPLE PRICE OPTIONS // ZERO OPAQUE PRICING
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Eliminates middleman price distortion. Kiosks compare live rates between direct Urban Farm Gates and Wholesale Depots with a 100% itemized breakdown of produce cost and courier fee.
+              </p>
+            </div>
+
+            {/* Benefit 2 */}
+            <div className="p-4 bg-slate-50 border border-slate-200 space-y-2 relative">
+              <div className="flex items-center justify-between">
+                <span className="text-orange-600 font-bold text-xs">[BENEFIT 02]</span>
+                <span className="px-1.5 py-0.5 bg-orange-100 text-orange-800 text-[9px] font-black rounded-xs">SAVE 4 HOURS DAILY</span>
+              </div>
+              <h3 className="text-sm font-black text-slate-900 uppercase">
+                ELIMINATE 4 AM MARKET COMMUTES
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                No more waking up before dawn to battle mud, crowds, pushcart porters, and security risks at Wakulima or Gikomba. Restock your kiosk digitally without stepping away from your counter.
+              </p>
+            </div>
+
+            {/* Benefit 3 */}
+            <div className="p-4 bg-slate-50 border border-slate-200 space-y-2 relative">
+              <div className="flex items-center justify-between">
+                <span className="text-orange-600 font-bold text-xs">[BENEFIT 03]</span>
+                <span className="px-1.5 py-0.5 bg-blue-100 text-blue-800 text-[9px] font-black rounded-xs">3-8 KM RADIUS</span>
+              </div>
+              <h3 className="text-sm font-black text-slate-900 uppercase">
+                HYPER-LOCAL URBAN FARM PROXIMITY
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Fresh produce sourced directly from peri-urban greenhouses in Ruaka, Wangige, Kiambu, and Kasarani. Delivered by stage Boda riders in 15–20 minutes without multi-day cold-chain spoilage.
+              </p>
+            </div>
+          </div>
+
+          {/* Expansion Horizon Banner */}
+          <div className="p-3.5 bg-slate-900 text-white border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2">
+                <span className="text-orange-400 font-bold uppercase tracking-wider">[FUTURE EXPANSION HORIZON]</span>
+                <span className="text-slate-400 text-[10px]">PHASE 2 ROADMAP</span>
+              </div>
+              <p className="text-slate-300 text-[11px]">
+                Inter-county routes (Rift Valley maize, Nyandarua potatoes) & cross-border freight with 1-tonne pickups, 3-tonne Canters, and refrigerated lorries.
+              </p>
+            </div>
+            <span className="px-2.5 py-1 bg-white/10 text-orange-300 text-[10px] font-mono border border-white/20 uppercase shrink-0">
+              MULTI-MODAL READY
+            </span>
+          </div>
+        </section>
 
         {/* 4-Node Architecture Grid */}
         <section className="space-y-4">
@@ -303,13 +385,13 @@ export default function HomePage() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-orange-600 font-bold">[NODE 03]</span>
-                  <span className="text-[10px] text-slate-400">LIMURU_HARVEST</span>
+                  <span className="text-[10px] text-slate-400">RUAKA_WANGIGE_AGRO</span>
                 </div>
                 <h2 className="text-xl font-black text-slate-900 group-hover:text-orange-600 transition-colors">
-                  FARM GATE
+                  URBAN FARM GATE
                 </h2>
                 <p className="text-xs text-slate-600 leading-relaxed">
-                  Direct farm produce listing (Maize, Tomatoes, Potatoes). Farm-gate pricing directly accessible to informal kiosks.
+                  Direct urban farm produce (Ruaka & Wangige greenhouses). Transparent farm-gate pricing in close proximity (3–8 km) for 15-minute Boda runs.
                 </p>
               </div>
 

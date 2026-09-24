@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.4.0] - 2026-09-24
+
+### Added
+- MVP Core Value Proposition block on the public dashboard highlighting multiple transparent price options, elimination of 4 AM market commutes, and hyper-local urban farm proximity (3–8 km).
+- `ADR-005` in `IMPLEMENTATION.md`: Strategic scoping to urban/peri-urban agriculture for MVP validation and multi-modal roadmap (pickups, Canters, refrigerated trucks) for inter-county expansion.
+- Phased Sprint 6 and Sprint 7 roadmap for inter-county corridors and regional cross-border freight waybills.
+
+### Changed
+- Refocused supplier Node 03 from generic rural farm gates to peri-urban agricultural hubs (Ruaka, Wangige, Kiambu road).
+- Sourcing radar updated to reflect realistic 3–8 km proximity routes with 15–20 minute Boda fulfillment.
+- Requisition modal updated with `DIRECT URBAN FARM` badge and transparent cost breakdown (commodity + carrier fee).
+
+---
+
 ## [0.3.0] - 2026-09-22
 
 ### Added

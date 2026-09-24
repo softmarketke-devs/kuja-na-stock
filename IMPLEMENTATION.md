@@ -56,13 +56,20 @@ Engineering progression, architectural decisions, and development roadmap for **
 
 ---
 
-## 2. Upcoming Roadmap (Phase 2 Backlog)
+## 2. Upcoming Roadmap (Phased Expansion)
 
-### Sprint 6: Real-World Payment & SMS Rails (In Progress / Backlog)
+### Sprint 6: Urban Farm Proximity & Transparent Multi-Tier Pricing (Current Focus)
+- [x] **Proximity-First Urban Farm Directory:** Integrated peri-urban agricultural hubs (Ruaka, Wangige, Kiambu road) within a 3–10 km vendor radius.
+- [x] **Transparent Multi-Tier Pricing Engine:** Exposes side-by-side transparent unit rates (Urban Farm Gate vs Wholesale Depot) with exact delivery breakdown to eliminate opaque broker markups.
+- [x] **Market Commute Elimination Flow:** Zero-commute requisition interface allowing shopkeepers to order without closing stalls or making 4 AM trips to Wakulima/Marikiti.
 - [ ] **M-Pesa Daraja STK Push:** Direct C2B and B2B settlement triggering payment prompt on the retailer's phone upon Boda delivery confirmation.
 - [ ] **Africa's Talking SMS Fallback:** Send SMS notification to wholesalers and riders when a kiosk submits an order while offline.
-- [ ] **GPS Breadcrumb Telemetry:** Geolocation API integration to track courier coordinates in transit between depot and kiosk.
-- [ ] **Inventory Barcode / QR Scanning:** Camera-based quick check-in for received cargo sacks.
+
+### Sprint 7: Multi-Modal Transport Fleet & Inter-County Corridors (Expansion Horizon)
+- [ ] **Multi-Modal Vehicle Dispatch:** Expand carrier matching beyond Boda boda motorcycles to include 1-tonne Pickups, 3-tonne Canters, and refrigerated lorries.
+- [ ] **Inter-County Sourcing Corridors:** Scheduled batch freight connecting major agricultural production zones (Rift Valley, Nyandarua, Meru) to peri-urban aggregation depots.
+- [ ] **Cross-Border / Intercountry Trade Gateway:** Digital waybills, customs manifests, and bulk lot verification for regional cross-border commodity flow (Uganda grain, Tanzania produce).
+- [ ] **GPS Breadcrumb Telemetry:** Geolocation API integration to track courier coordinates in transit between farm/depot and kiosk.
 
 ---
 
@@ -91,6 +98,12 @@ Engineering progression, architectural decisions, and development roadmap for **
 - **Context:** Telemetry dashboards displaying dynamic unit prices (KSh/kg), distances (km), and batch tonnages suffer from layout jitter when rendered in proportional sans-serif fonts.
 - **Decision:** Standardized on `Inconsolata` with CSS `font-optical-sizing: auto` and variable width for all numeric data and tabular readouts.
 - **Consequences:** Rock-solid columnar alignment across small mobile viewports and large depot screens.
+
+### ADR-005: Urban Agriculture Proximity for MVP vs Inter-County Freight Expansion
+- **Status:** Accepted
+- **Context:** Long-distance agricultural freight (e.g., Rift Valley, Western Kenya, Uganda/Tanzania borders) involves multi-day routing, cold-chain risks, inter-county cess taxes, and multi-tonne trucks. Meanwhile, urban kiosks suffer immediately from two acute daily pain points: opaque broker pricing and losing 3–4 hours every morning commuting to Wakulima/Marikiti market at 4 AM.
+- **Decision:** Scope the initial MVP strictly to **Urban and Peri-Urban Farms in close proximity to vendors (3–10 km)** (Ruaka, Wangige, Kiambu road, Kasarani, Ngong). This enables rapid 15–25 minute Boda cargo runs, provides transparent side-by-side pricing to kill broker markups, and eliminates the 4 AM market trip. Decouple transport vehicle interfaces in domain models (`src/types/index.ts`) so that Phase 2 can seamlessly onboard 1-tonne pickups, Canters, and inter-county transit corridors.
+- **Consequences:** Drastically compressed fulfillment cycle (minutes vs days), minimal capital expenditure for carriers, verified vendor product-market fit, and a clean architectural runway for regional freight scaling.
 
 ---
 

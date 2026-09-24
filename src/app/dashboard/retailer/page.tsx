@@ -677,7 +677,7 @@ export default function RetailerDashboard() {
                         ) : null}
 
                         <span className="text-[9px] font-black px-1.5 py-0.5 uppercase bg-slate-100 text-slate-700 border border-slate-200">
-                          {isFarmer ? 'DIRECT FARM GATE' : 'WHOLESALE DEPOT'}
+                          {isFarmer ? 'DIRECT URBAN FARM' : 'WHOLESALE DEPOT'}
                         </span>
                         <h4 className="font-black text-slate-900 text-base uppercase">
                           {list.supplier?.business_name}

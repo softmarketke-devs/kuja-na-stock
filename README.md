@@ -12,13 +12,42 @@ B2B commodity supply and boda dispatch Progressive Web App built for informal fo
 
 ## The Problem
 
-In Nairobi, more than 70% of food retail moves through informal kiosks (dukas and Mama Mbogas). These retailers face three structural bottlenecks:
+In Nairobi, more than 70% of food retail moves through informal kiosks (dukas and Mama Mbogas). These micro-retailers face three critical operational bottlenecks:
 
-1. **Broker Markups:** Middlemen extract 20% to 35% between rural farm gates (e.g. Limuru, Kinangop) and retail stalls in Westlands or Kawangware.
-2. **Delivery App Mismatch:** Consumer delivery apps (Uber Eats, Glovo, Bolt Food) are designed for 1–3 kg restaurant meals with 25%+ commissions. They do not handle 50 kg sacks of dry maize, 40 kg bags of beans, or 30 kg crates of tomatoes.
-3. **Courier Exclusion:** Local stage-based boda boda riders lack access to scheduled B2B cargo runs, relying instead on unpredictable passenger gigs with long idle hours.
+1. **Opaque Pricing & Middleman Rent-Seeking:** Informal food pricing is completely opaque. Brokers at central markets arbitrarily dictate daily commodity rates, extracting 20% to 35% in hidden markups with zero price transparency for the kiosk owner.
+2. **The Exhausting 4 AM Market Trek:** Retailers are forced to wake up at 3:30 AM–4:00 AM, pay for round-trip matatus to congested, muddy wholesale hubs (Wakulima/Marikiti or Gikomba), haggle in person, hire pushcart porters, and haul 50 kg sacks back to their kiosks—wasting 3 to 4 productive hours and exposing themselves to pre-dawn crime and harassment before their shop even opens.
+3. **Consumer Delivery Apps Fail Bulk Cargo:** Consumer logistics apps (Uber Eats, Glovo, Bolt Food) are engineered for 1–2 kg prepared restaurant takeout with steep 25%+ commissions. They are structurally incapable of handling bulk food sacks (40 kg beans, 50 kg maize, 30 kg tomato crates).
 
-Kuja Na Stock connects corner kiosks directly to bulk wholesale depots and farm gates, using local stage boda riders for on-demand cargo transport with zero broker markups.
+---
+
+## The Solution: Kuja Na Stock (KNS)
+
+Kuja Na Stock is an industrial PWA logistics terminal that bridges corner kiosks directly with nearby food producers and wholesale hubs, dispatching local stage boda couriers for rapid cargo delivery.
+
+### MVP Focus: Hyper-Local Urban & Peri-Urban Farms
+
+For our initial MVP rollout, the platform focuses strictly on **urban and peri-urban farms in close proximity to vendors** (3–10 km radius across Nairobi corridors such as Ruaka, Wangige, Kiambu road, Kasarani, and Ngong):
+
+- **Proximity-First Transit:** Freshly harvested greens, tomatoes, potatoes, and dairy can be dispatched and delivered directly to the kiosk doorstep in 15–25 minutes via standard stage boda bodas.
+- **Low Unit Friction:** Eliminates the need for long-haul multi-day cold chains, keeping platform unit economics lean and reliable for MVP validation.
+
+### Core Value Propositions & Benefits
+
+1. **Multiple Transparent Price Options (Zero Opaque Pricing):**
+   - The platform provides an instant, side-by-side sourcing radar comparing **Cheapest (Urban Farm Gate)** vs. **Fastest (Wholesale Depot)**.
+   - Retailers see the exact item unit price, distance in kilometers, delivery fee, and net profit margins—eliminating broker extortion.
+2. **Eliminates the Need to Physically Go to the Market:**
+   - Kiosk operators order digitally or via hands-free voice without leaving their counter.
+   - Reclaims 3 to 4 hours of sleep and daily labor; produce arrives at the kiosk while morning customers are served.
+3. **Guaranteed Boda Cargo Work:**
+   - Converts idle stage riders into calibrated B2B freight carriers with guaranteed round-trip payouts.
+
+### Future Expansion Horizon
+
+While the MVP validates hyper-local urban farm proximity, the system architecture is built to support a phased scale-out:
+- **Inter-County Corridors:** Direct farm-to-depot sourcing routes connecting high-yield agricultural basins (Rift Valley maize, Nyandarua potatoes, Meru bananas).
+- **Cross-Border / Intercountry Trade:** Digital customs waybills and bulk aggregation from regional trade corridors (e.g., Uganda grain flows, Tanzania produce).
+- **Multi-Modal Fleet Dispatch:** Expanding carrier matching beyond Boda motorcycles to include 1-tonne Pickups, 3-tonne Canters, and refrigerated lorries for large-batch bulk orders.
 
 ---
 
@@ -30,16 +59,17 @@ Kuja Na Stock connects corner kiosks directly to bulk wholesale depots and farm 
 └────────────────────────────────────────────────────────────────────────┘
           │                                            │
           ▼                                            ▼
-   [NODE 03: FARM GATE]                      [NODE 02: WHOLESALE DEPOT]
-   Limuru / Kinangop                         Wakulima / Industrial Area
-   Direct crop lots (Maize, Tomatoes)        Bulk stock & calibrated unit rates
+   [NODE 03: URBAN FARM GATE]                [NODE 02: WHOLESALE DEPOT]
+   Ruaka / Wangige / Kiambu (3-8 km)         Wakulima / Industrial Area
+   Direct fresh harvest (Tomatoes, Greens)   Calibrated bulk depot stock
           │                                            │
           └─────────────────────┬──────────────────────┘
-                                │ Sourcing Matrix
-                                ▼ (Cheapest vs Fastest)
+                                │ Sourcing Radar
+                                ▼ (Cheapest vs Fastest Transparent Rates)
                      [NODE 01: RETAIL KIOSK]
                      Stock monitoring, automated shortage
                      triggers, hands-free voice requisition
+                     (Zero 4 AM market commutes needed)
                                 │
                                 │ Dispatch Ping
                                 ▼
