@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Inconsolata } from 'next/font/google'
 import './globals.css'
+import { RegisterServiceWorker } from '@/components/RegisterServiceWorker'
 
 const inconsolata = Inconsolata({
   subsets: ['latin'],
@@ -10,13 +11,13 @@ const inconsolata = Inconsolata({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://supplier-hub-rouge.vercel.app'),
-  title: 'KUJA NA STOCK // Nairobi B2B Supply & Boda Logistics Terminal',
-  description: 'Industrial-grade PWA dispatch network connecting retailers, wholesalers, farmers, and boda riders across East Africa.',
-  keywords: ['kuja na stock', 'nairobi supply chain', 'retailer kiosk', 'wholesaler', 'farmer', 'boda delivery', 'PWA'],
+  title: 'Kuja Na Stock | Order tonight, stocked by 7 AM',
+  description: 'Nairobi shop owners order stock in the evening from nearby farms and depots, and a boda rider delivers it before opening. No 4 AM market trip.',
+  keywords: ['kuja na stock', 'duka stock delivery', 'nairobi', 'mama mboga', 'boda delivery', 'wholesale', 'farm gate'],
   authors: [{ name: 'Kuja Na Stock Logistics' }],
   openGraph: {
-    title: 'KUJA NA STOCK // B2B Terminal',
-    description: 'Direct commodity supply & boda dispatch system for East Africa',
+    title: 'Kuja Na Stock',
+    description: 'Order tonight, stocked by 7 AM.',
     type: 'website',
     images: ['/logo.jpg'],
   },
@@ -50,6 +51,7 @@ export default function RootLayout({
       </head>
       <body className={`${inconsolata.variable} font-mono min-h-screen bg-[#f8fafc] text-[#0f172a] antialiased selection:bg-orange-500 selection:text-white`}>
         {children}
+        <RegisterServiceWorker />
       </body>
     </html>
   )

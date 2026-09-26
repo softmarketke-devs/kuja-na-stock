@@ -4,8 +4,8 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'Kuja Na Stock PWA',
     short_name: 'KujaNaStock',
-    description: 'B2B commodity supply & boda dispatch platform connecting retailers, wholesalers, farmers, and boda riders across East Africa.',
-    start_url: '/',
+    description: 'Order stock tonight, delivered to your shop by boda before 7 AM.',
+    start_url: '/dashboard',
     display: 'standalone',
     background_color: '#f8fafc',
     theme_color: '#ea580c',

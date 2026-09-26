@@ -58,12 +58,12 @@ Engineering progression, architectural decisions, and development roadmap for **
 
 ## 2. Upcoming Roadmap (Phased Expansion)
 
-### Sprint 6: Urban Farm Proximity & Transparent Multi-Tier Pricing (Current Focus)
+### Sprint 6: Urban Farm Proximity & Transparent Multi-Tier Pricing
 - [x] **Proximity-First Urban Farm Directory:** Integrated peri-urban agricultural hubs (Ruaka, Wangige, Kiambu road) within a 3–10 km vendor radius.
 - [x] **Transparent Multi-Tier Pricing Engine:** Exposes side-by-side transparent unit rates (Urban Farm Gate vs Wholesale Depot) with exact delivery breakdown to eliminate opaque broker markups.
 - [x] **Market Commute Elimination Flow:** Zero-commute requisition interface allowing shopkeepers to order without closing stalls or making 4 AM trips to Wakulima/Marikiti.
 - [ ] **M-Pesa Daraja STK Push:** Direct C2B and B2B settlement triggering payment prompt on the retailer's phone upon Boda delivery confirmation.
-- [ ] **Africa's Talking SMS Fallback:** Send SMS notification to wholesalers and riders when a kiosk submits an order while offline.
+- [x] **Africa's Talking SMS:** Outbox-based SMS for new orders, confirmations, run offers, pickup (with delivery code), delivery receipts and problems (v0.5.0).
 
 ### Sprint 7: Multi-Modal Transport Fleet & Inter-County Corridors (Expansion Horizon)
 - [ ] **Multi-Modal Vehicle Dispatch:** Expand carrier matching beyond Boda boda motorcycles to include 1-tonne Pickups, 3-tonne Canters, and refrigerated lorries.
@@ -72,6 +72,15 @@ Engineering progression, architectural decisions, and development roadmap for **
 - [ ] **GPS Breadcrumb Telemetry:** Geolocation API integration to track courier coordinates in transit between farm/depot and kiosk.
 
 ---
+
+### Sprint 6b: Next-Morning Delivery Rebuild (v0.5.0, current focus)
+- [x] Supabase schema with orders, line items, delivery runs, delivery codes, payments, issues, rider availability.
+- [x] Lifecycle as role-checked Postgres functions + RLS; Server Actions replace the Zustand demo store.
+- [x] 21:00 cutoff, 05:00–07:00 delivery window, batched runs (max 6 drops), first-accept rider booking, supplier can book own rider.
+- [x] Delivery-code handover, payment record, automatic restock, 24 h problem reporting.
+- [x] Evening/morning cron sweeps; proxy auth redirects; realtime dashboard refresh.
+- [ ] Run the schema on a live project and verify the end-to-end flow.
+- [ ] Automated tests for the SQL functions.
 
 ## 3. Architecture Decision Records (ADRs)
 
@@ -107,14 +116,22 @@ Engineering progression, architectural decisions, and development roadmap for **
 
 ---
 
-## 4. Verification & Testing Matrix
+### ADR-006: Single focus on next-morning stock delivery (supersedes ADR-002, ADR-003)
+- **Status:** Accepted (2026-09-24)
+- **Context:** The prototype covered sourcing, voice ordering, instant dispatch and four operator terminals, but kept all data in each browser's Zustand store, so no two phones shared an order. The problem shopkeepers feel most every day is the pre-dawn market trip.
+- **Decision:** Build only the flow that removes that trip. Retailers order by 21:00, suppliers confirm and reserve stock, orders are batched into one run per supplier per morning, a nearby rider accepts the run and delivers 05:00–07:00, and the retailer's code confirms the handover. Every state change is a Postgres function guarded by the caller's role, and RLS controls reads. Voice, TTS and the demo store are removed.
+- **Consequences:** The app now works across devices, and the rules are enforced in one place (the database). Instant on-demand delivery is out of scope. The schema is new and does not migrate the demo data.
 
-| Component | Test Case | Target State | Verified Status |
-| :--- | :--- | :--- | :--- |
-| **Retailer Inventory** | Requisition 50kg Maize | Stock increments +50 kg upon delivery | PASSED |
-| **Sourcing Engine** | Price vs Speed comparison | Accurate KSh savings and ETA difference displayed | PASSED |
-| **Wholesaler Terminal** | Calibration buttons (±5 KSh) | Listing rate updates and propagates across system | PASSED |
-| **Boda HUD** | Advance trip state | Accepted → Picked Up → In Transit → Delivered | PASSED |
-| **Voice Terminal** | "Order 50kg maize" command | Parser extracts item & qty, creates order, speaks response | PASSED |
-| **PWA Manifest** | Install prompt & offline check | Returns 200 OK, standalone display configuration | PASSED |
-| **Production Build** | `next build` with Turbopack | Zero TypeScript errors, zero lint warnings | PASSED |
+---
+
+## 4. Verification & Testing Matrix (v0.5.0)
+
+| Check | Status |
+| :--- | :--- |
+| `next build` (Turbopack, TypeScript) | Passed |
+| `eslint src` | Passed, 0 problems |
+| `supabase/schema.sql` executed against Postgres/Supabase | **Not yet run.** Reviewed by hand only |
+| End-to-end flow (retailer → supplier → rider → delivered) on a live Supabase project | **Not yet run** |
+| Africa's Talking sandbox SMS | **Not yet run** |
+
+Run `supabase/schema.sql` on a fresh project and walk through the "Try the full flow" steps in the README before relying on these.

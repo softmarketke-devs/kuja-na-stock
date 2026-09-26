@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.5.0] - 2026-09-24
+
+Refocused the product on one problem: getting stock to the kiosk before opening, without the 4 AM market trip.
+
+### Added
+- New Supabase schema (`supabase/schema.sql`): orders with line items, delivery runs (one per supplier per morning, max 6 drops), delivery codes, payments, delivery issues, rider availability, SMS outbox.
+- Postgres functions for the whole lifecycle: `place_order`, `reorder_last_delivery`, `cancel_order`, `supplier_respond`, `supplier_assign_rider`, `accept_run`, `release_run`, `mark_run_picked_up`, `confirm_delivery`, `fail_delivery`, `report_issue`, `resolve_issue`, `evening_sweep`, `morning_sweep`.
+- Row Level Security for every table, profile-creation trigger on signup, role-change guard.
+- Next-morning delivery with a 21:00 cutoff and 05:00–07:00 window; distance-based delivery fee paid to the rider.
+- Supplier comparison by landed cost (price + delivery fee) for the retailer's own location.
+- 4-digit delivery code handed over by the retailer; stock is added to the retailer's inventory on delivery.
+- Africa's Talking SMS via an outbox, with retries.
+- Vercel cron routes for the evening (21:05) and morning (03:30) sweeps.
+- `src/proxy.ts` session refresh and auth redirects; role checks in every dashboard page.
+- Live dashboard refresh via Supabase Realtime.
+- Settings page with GPS location capture.
+- Offline fallback page.
+
+### Changed
+- Roles are now retailer, supplier (farm or depot) and rider; the separate wholesaler and farmer dashboards are merged into one supplier dashboard.
+- Dashboards read from and write to Supabase through Server Actions instead of a per-browser Zustand store.
+- Service worker no longer caches pages (stale orders); only static assets are cached.
+
+### Removed
+- Demo role switcher and seeded demo store (`zustand`).
+- Voice assistant and the ElevenLabs `/api/tts` endpoint (it was unauthenticated).
+
+---
+
 ## [0.4.0] - 2026-09-24
 
 ### Added
