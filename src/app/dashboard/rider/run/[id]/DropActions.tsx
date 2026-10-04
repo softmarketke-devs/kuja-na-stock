@@ -64,7 +64,7 @@ export function DropActions({ orderId, total }: { orderId: string; total: number
         <summary className="text-sm text-red-700 font-bold cursor-pointer">Couldn’t deliver?</summary>
         <ActionForm action={failDelivery} className="mt-2 space-y-2" confirmMessage="Mark this drop as not delivered?">
           <input type="hidden" name="order_id" value={orderId} />
-          <input name="reason" required placeholder="e.g. Shop closed, no answer on phone" className={inputClass} />
+          <input name="reason" required placeholder="e.g. Butchery closed, no answer on phone" className={inputClass} />
           <SubmitButton className={dangerButton + ' w-full'} pendingText="Saving…">
             Mark not delivered
           </SubmitButton>

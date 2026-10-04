@@ -76,7 +76,7 @@ export default async function RetailerHome() {
                     <KeyRound className="w-5 h-5 text-orange-400 shrink-0" />
                     <div className="text-sm">
                       Delivery code <span className="text-2xl font-black tracking-[0.3em] ml-1">{order.secret.delivery_code}</span>
-                      <p className="text-xs text-slate-300">Check the goods first, then give this code to the rider.</p>
+                      <p className="text-xs text-slate-300">Check the goods first, then give this code to the carrier.</p>
                     </div>
                   </div>
                 )}

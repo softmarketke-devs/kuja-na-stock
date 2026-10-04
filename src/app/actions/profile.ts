@@ -34,7 +34,21 @@ export async function updateProfile(_prev: ActionResult, formData: FormData): Pr
       service_radius_km: radius,
     }
     const supplierType = str(formData, 'supplier_type')
-    if (supplierType === 'farm' || supplierType === 'depot') update.supplier_type = supplierType
+    if (supplierType === 'slaughterhouse' || supplierType === 'wholesaler') update.supplier_type = supplierType
+
+    if (formData.has('meat_permit_no')) {
+      const expiry = str(formData, 'meat_permit_expiry')
+      if (expiry && !/^\d{4}-\d{2}-\d{2}$/.test(expiry)) throw new Error('Enter the permit expiry date')
+      const capacity = str(formData, 'load_capacity_kg')
+      const capacityN = capacity === '' ? null : Number(capacity)
+      if (capacityN !== null && !(capacityN > 0 && capacityN <= 5000)) {
+        throw new Error('Load capacity must be between 1 and 5000 kg')
+      }
+      update.meat_permit_no = str(formData, 'meat_permit_no') || null
+      update.meat_permit_expiry = expiry || null
+      update.vehicle_reg = str(formData, 'vehicle_reg').toUpperCase() || null
+      update.load_capacity_kg = capacityN
+    }
 
     const { error } = await supabase.from('profiles').update(update).eq('id', userId)
     if (error) throw new Error(error.message)

@@ -38,7 +38,7 @@ export function SettingsForm({ profile }: { profile: Profile }) {
     profile.role === 'supplier'
       ? 'Deliver to shops within (km)'
       : profile.role === 'rider'
-        ? 'Take pickups within (km of your stage)'
+        ? 'Take pickups within (km of your base)'
         : null
 
   return (
@@ -63,7 +63,7 @@ export function SettingsForm({ profile }: { profile: Profile }) {
         {profile.role !== 'rider' && (
           <div>
             <label className={labelClass} htmlFor="business_name">
-              {profile.role === 'retailer' ? 'Shop name' : 'Business / farm name'}
+              {profile.role === 'retailer' ? 'Butchery name' : 'Business name'}
             </label>
             <input id="business_name" name="business_name" defaultValue={profile.business_name ?? ''} className={inputClass} />
           </div>
@@ -71,28 +71,75 @@ export function SettingsForm({ profile }: { profile: Profile }) {
         {profile.role === 'supplier' && (
           <div>
             <label className={labelClass} htmlFor="supplier_type">Supplier type</label>
-            <select id="supplier_type" name="supplier_type" defaultValue={profile.supplier_type ?? 'depot'} className={inputClass}>
-              <option value="farm">Farm (sells own produce)</option>
-              <option value="depot">Wholesale depot</option>
+            <select id="supplier_type" name="supplier_type" defaultValue={profile.supplier_type ?? 'wholesaler'} className={inputClass}>
+              <option value="slaughterhouse">Slaughterhouse</option>
+              <option value="wholesaler">Meat wholesaler</option>
             </select>
           </div>
         )}
+        {profile.role === 'rider' && (
+          <fieldset className="border border-slate-200 p-3 space-y-3">
+            <legend className={labelClass + ' px-1'}>Update permit or vehicle</legend>
+            <p className="text-sm text-slate-600">
+              Only change these when you renew your permit or change vehicle. Changes must be checked again.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className={labelClass} htmlFor="meat_permit_no">Permit number</label>
+                <input id="meat_permit_no" name="meat_permit_no" defaultValue={profile.meat_permit_no ?? ''} className={inputClass} />
+              </div>
+              <div>
+                <label className={labelClass} htmlFor="meat_permit_expiry">Permit expiry date</label>
+                <input
+                  id="meat_permit_expiry"
+                  name="meat_permit_expiry"
+                  type="date"
+                  defaultValue={profile.meat_permit_expiry ?? ''}
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass} htmlFor="vehicle_reg">Vehicle registration</label>
+                <input
+                  id="vehicle_reg"
+                  name="vehicle_reg"
+                  defaultValue={profile.vehicle_reg ?? ''}
+                  placeholder="e.g. KMFA 123B"
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass} htmlFor="load_capacity_kg">Load capacity (kg)</label>
+                <input
+                  id="load_capacity_kg"
+                  name="load_capacity_kg"
+                  type="number"
+                  min={1}
+                  max={5000}
+                  step={1}
+                  defaultValue={profile.load_capacity_kg ?? ''}
+                  className={inputClass}
+                />
+              </div>
+            </div>
+          </fieldset>
+        )}
         <div>
           <label className={labelClass} htmlFor="address">
-            {profile.role === 'rider' ? 'Stage name / area' : 'Directions for the rider'}
+            {profile.role === 'rider' ? 'Base / area you work from' : 'Directions for the carrier'}
           </label>
           <input
             id="address"
             name="address"
             defaultValue={profile.address ?? ''}
-            placeholder={profile.role === 'rider' ? 'e.g. Ruaka stage' : 'e.g. Kipande Rd, next to Total petrol station'}
+            placeholder={profile.role === 'rider' ? 'e.g. Dagoretti' : 'e.g. Kipande Rd, next to Total petrol station'}
             className={inputClass}
           />
         </div>
 
         <fieldset className="border border-slate-200 p-3 space-y-3">
           <legend className={labelClass + ' px-1'}>
-            {profile.role === 'retailer' ? 'Shop location' : profile.role === 'supplier' ? 'Pickup location' : 'Stage location'}
+            {profile.role === 'retailer' ? 'Butchery location' : profile.role === 'supplier' ? 'Pickup location' : 'Base location'}
           </legend>
           <button type="button" onClick={locate} disabled={locating} className={secondaryButton + ' w-full'}>
             <LocateFixed className="w-4 h-4" />

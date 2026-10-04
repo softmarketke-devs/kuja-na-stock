@@ -28,8 +28,11 @@ export async function releaseRun(_prev: ActionResult, formData: FormData): Promi
 
 export async function pickUpRun(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
   return perform(async (supabase) => {
-    await rpc(supabase, 'mark_run_picked_up', { p_run_id: str(formData, 'run_id') })
-    return 'Picked up. Retailers have been sent their delivery codes.'
+    await rpc(supabase, 'mark_run_picked_up', {
+      p_run_id: str(formData, 'run_id'),
+      p_transport_cert_no: str(formData, 'transport_cert_no'),
+    })
+    return 'Picked up. Butcheries have been sent their delivery codes.'
   })
 }
 

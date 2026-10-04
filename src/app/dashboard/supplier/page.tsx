@@ -6,10 +6,13 @@ import { DELIVERY_WINDOW } from '@/lib/constants'
 import { assignRider, resolveIssue, respondToOrder } from '@/app/actions/supplier'
 import { ActionForm, SubmitButton } from '@/components/ActionForm'
 import { OrderCard } from '@/components/OrderCard'
+import { permitStatus } from '@/lib/permit'
 import {
+  Badge,
   Card,
   Empty,
   OrderStatusBadge,
+  PermitBadge,
   PhoneLink,
   RunStatusBadge,
   SectionTitle,
@@ -90,7 +93,7 @@ export default async function SupplierHome() {
       <section>
         <SectionTitle>Morning delivery runs</SectionTitle>
         {upcomingRuns.length === 0 ? (
-          <Empty>Confirmed orders are grouped into one run per morning, and a rider collects them at 05:00.</Empty>
+          <Empty>Confirmed orders are grouped into one run per morning, and a licensed meat carrier collects them at 05:00.</Empty>
         ) : (
           <div className="space-y-3">
             {upcomingRuns.map((run) => (
@@ -106,7 +109,7 @@ export default async function SupplierHome() {
           <div className="grid gap-3 md:grid-cols-2">
             {openIssues.map((issue) => (
               <Card key={issue.id} className="p-4 space-y-2 border-red-300">
-                <div className="text-[11px] text-slate-500 font-bold">
+                <div className="text-[13px] text-slate-500 font-bold">
                   Order #{issue.order.order_no} · {formatDate(issue.order.delivery_date)}
                 </div>
                 <div className="font-black">
@@ -157,25 +160,33 @@ function RunCard({ run }: { run: DeliveryRun }) {
             {formatDate(run.run_date)}, pickup 05:00 · {orders.length} drop{orders.length === 1 ? '' : 's'}
           </div>
           <div className="text-sm text-slate-600">
-            Deliveries {DELIVERY_WINDOW} · rider earns {ksh(run.rider_fee)}
+            Deliveries {DELIVERY_WINDOW} · carrier earns {ksh(run.rider_fee)}
           </div>
         </div>
         <RunStatusBadge status={run.status} />
       </div>
 
       {run.rider ? (
-        <p className="text-sm">
-          Rider: <span className="font-bold">{run.rider.full_name}</span> · <PhoneLink phone={run.rider.phone} />
-        </p>
+        <div className="text-sm space-y-1">
+          <p>
+            Carrier: <span className="font-bold">{run.rider.full_name}</span> · <PhoneLink phone={run.rider.phone} />
+          </p>
+          <p className="flex flex-wrap items-center gap-2 text-slate-600">
+            Vehicle {run.rider.vehicle_reg ?? 'not recorded'}
+            <PermitBadge status={permitStatus(run.rider.meat_permit_no, run.rider.meat_permit_expiry, run.run_date)} />
+            {!run.rider.is_verified && <Badge>Permit not yet checked</Badge>}
+          </p>
+          {run.transport_cert_no && <p className="text-slate-600">Certificate of transport: {run.transport_cert_no}</p>}
+        </div>
       ) : (
         run.status === 'open' && (
           <div className="bg-orange-50 border border-orange-200 p-3 space-y-2">
             <p className="text-sm">
-              Offered to nearby riders. Know a rider? Book them directly (they must be registered as a rider).
+              Offered to nearby carriers with a valid meat transport permit. Know one? Book them directly (they must be registered as a meat carrier).
             </p>
             <ActionForm action={assignRider} className="flex gap-2">
               <input type="hidden" name="run_id" value={run.id} />
-              <input name="rider_phone" type="tel" required placeholder="Rider phone 07…" className={inputClass} />
+              <input name="rider_phone" type="tel" required placeholder="Carrier phone 07…" className={inputClass} />
               <SubmitButton className={secondaryButton + ' shrink-0'} pendingText="Booking…">
                 Book
               </SubmitButton>
@@ -186,7 +197,7 @@ function RunCard({ run }: { run: DeliveryRun }) {
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <div className="text-[11px] font-bold uppercase text-slate-500 mb-1">Packing list</div>
+          <div className="text-[13px] font-bold uppercase text-slate-500 mb-1">Packing list</div>
           <ul className="text-sm border border-slate-200 divide-y divide-slate-100">
             {[...packing.values()].map((p) => (
               <li key={p.name} className="flex justify-between px-2 py-1">
@@ -199,7 +210,7 @@ function RunCard({ run }: { run: DeliveryRun }) {
           </ul>
         </div>
         <div>
-          <div className="text-[11px] font-bold uppercase text-slate-500 mb-1">Drops</div>
+          <div className="text-[13px] font-bold uppercase text-slate-500 mb-1">Drops</div>
           <ul className="text-sm border border-slate-200 divide-y divide-slate-100">
             {orders.map((o) => (
               <li key={o.id} className="px-2 py-1 flex justify-between gap-2">

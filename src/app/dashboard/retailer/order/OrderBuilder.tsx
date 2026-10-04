@@ -166,7 +166,7 @@ export function OrderBuilder({
                   <div className="flex flex-wrap items-center gap-1.5">
                     <span className="font-black">{o.supplier_name}</span>
                     {o.supplier_verified && <ShieldCheck className="w-4 h-4 text-emerald-600" aria-label="Verified" />}
-                    <Badge color={o.supplier_type === 'farm' ? 'green' : 'slate'}>{o.supplier_type === 'farm' ? 'Farm' : 'Depot'}</Badge>
+                    <Badge color={o.supplier_type === 'slaughterhouse' ? 'green' : 'slate'}>{o.supplier_type === 'slaughterhouse' ? 'Slaughterhouse' : 'Wholesaler'}</Badge>
                     {o.listing_id === bestTotal && <Badge color="orange">Best total</Badge>}
                     {o.listing_id === cheapestUnit && o.listing_id !== bestTotal && <Badge color="blue">Lowest price</Badge>}
                     {o.listing_id === nearest && <Badge>Nearest</Badge>}

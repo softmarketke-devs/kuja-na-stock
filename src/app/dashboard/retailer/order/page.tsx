@@ -28,12 +28,12 @@ export default async function OrderPage({
         <h1 className="text-xl font-black uppercase tracking-tight">Order stock</h1>
         <p className="text-sm text-slate-600">
           Delivery {formatDate(nextDate)}, {DELIVERY_WINDOW}
-          {!isBeforeCutoff() && ' (9 PM cutoff passed)'}. Prices below include the delivery fee to your shop.
+          {!isBeforeCutoff() && ' (9 PM cutoff passed)'}. Prices below include the delivery fee to your butchery.
         </p>
       </div>
 
       {profile.lat === null ? (
-        <Empty>Set your shop location in Settings to see suppliers and delivery prices.</Empty>
+        <Empty>Set your butchery location in Settings to see suppliers and delivery prices.</Empty>
       ) : error ? (
         <Empty>Could not load suppliers: {error.message}</Empty>
       ) : (

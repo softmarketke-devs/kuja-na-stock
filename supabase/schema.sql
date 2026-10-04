@@ -1,19 +1,27 @@
 -- ============================================================================
--- Kuja Na Stock (KNS) — next-morning stock delivery
+-- Kuja Na Stock (KNS) — next-morning meat delivery to butcheries
 -- ----------------------------------------------------------------------------
--- Retailers order in the evening, suppliers confirm, confirmed orders are
--- batched into one delivery run per supplier per morning, and a boda rider
--- delivers the run between 05:00 and 07:00 so kiosks are stocked before
--- opening.
+-- Butcheries order in the evening from slaughterhouses and meat wholesalers,
+-- suppliers confirm, confirmed orders are batched into one delivery run per
+-- supplier per morning, and a licensed meat carrier delivers the run between
+-- 05:00 and 07:00 so butcheries are stocked before opening.
+--
+-- The 'rider' role is the meat carrier. It is kept as 'rider' internally.
 --
 -- Business rules (mirrored in src/lib/constants.ts):
 --   * Order cutoff 21:00 Africa/Nairobi. Before cutoff → delivered tomorrow,
 --     after cutoff → the day after.
 --   * Delivery window 05:00–07:00.
 --   * Delivery fee KSh 50 per road-km (straight line × 1.3), min KSh 100,
---     rounded to the nearest KSh 10. The fee goes to the rider.
+--     rounded to the nearest KSh 10. The fee goes to the carrier.
 --   * Max 6 drops per delivery run.
 --   * Unconfirmed orders are cancelled by the morning sweep (03:30).
+--   * Meat Control (Transport of Meat) Regulations, 1976: a carrier must hold
+--     a meat transport permit (reg. 3), and each consignment travels with a
+--     certificate of transport signed by the slaughterhouse inspecting officer
+--     (reg. 8(a)). A carrier can only take a run if their recorded permit is
+--     valid on the run date and the run's weight fits their load capacity,
+--     and must enter the certificate number at pickup.
 --
 -- All state changes go through SECURITY DEFINER functions below; clients can
 -- only read (RLS) and edit their own profile / listings / stock counts.
@@ -30,7 +38,7 @@ create extension if not exists pgcrypto with schema extensions;
 -- Types
 -- ---------------------------------------------------------------------------
 create type public.user_role as enum ('retailer', 'supplier', 'rider', 'admin');
-create type public.supplier_type as enum ('farm', 'depot');
+create type public.supplier_type as enum ('slaughterhouse', 'wholesaler');
 create type public.order_status as enum (
   'pending',    -- placed by retailer, waiting for supplier
   'confirmed',  -- supplier accepted, stock reserved, in a run
@@ -63,8 +71,13 @@ create table public.profiles (
       then extensions.st_setsrid(extensions.st_makepoint(lng, lat), 4326)::extensions.geography
     end
   ) stored,
-  -- Supplier: how far they deliver. Rider: how far from their stage they ride.
+  -- Supplier: how far they deliver. Carrier: how far from their base they collect.
   service_radius_km numeric(5,1) not null default 10 check (service_radius_km between 1 and 50),
+  -- Carriers only. Self-reported; is_verified is set by an admin after checking the permit.
+  meat_permit_no text,
+  meat_permit_expiry date,
+  vehicle_reg text,
+  load_capacity_kg numeric(6,1) check (load_capacity_kg > 0),
   is_verified boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
@@ -111,6 +124,7 @@ create table public.delivery_runs (
   run_date date not null,
   status public.run_status not null default 'open',
   rider_fee numeric(10,2) not null default 0,
+  transport_cert_no text,  -- certificate of transport, entered by the carrier at pickup
   created_at timestamptz not null default now(),
   accepted_at timestamptz,
   picked_up_at timestamptz,
@@ -382,7 +396,11 @@ begin
     else 'retailer'
   end)::user_role;
 
-  insert into profiles (id, role, full_name, phone, business_name, supplier_type)
+  -- Carriers register their permit and vehicle once, at signup (validated by the app).
+  insert into profiles (
+    id, role, full_name, phone, business_name, supplier_type,
+    meat_permit_no, meat_permit_expiry, vehicle_reg, load_capacity_kg
+  )
   values (
     new.id,
     v_role,
@@ -390,8 +408,12 @@ begin
     normalize_ke_phone(v_meta->>'phone'),
     nullif(btrim(v_meta->>'business_name'), ''),
     case when v_role = 'supplier' then
-      (case v_meta->>'supplier_type' when 'farm' then 'farm' else 'depot' end)::supplier_type
-    end
+      (case v_meta->>'supplier_type' when 'slaughterhouse' then 'slaughterhouse' else 'wholesaler' end)::supplier_type
+    end,
+    case when v_role = 'rider' then nullif(btrim(v_meta->>'meat_permit_no'), '') end,
+    case when v_role = 'rider' then nullif(v_meta->>'meat_permit_expiry', '')::date end,
+    case when v_role = 'rider' then upper(nullif(btrim(v_meta->>'vehicle_reg'), '')) end,
+    case when v_role = 'rider' then nullif(v_meta->>'load_capacity_kg', '')::numeric end
   );
   return new;
 end
@@ -415,7 +437,19 @@ begin
   if new.role <> 'supplier' then
     new.supplier_type := null;
   elsif new.supplier_type is null then
-    new.supplier_type := coalesce(old.supplier_type, 'depot');
+    new.supplier_type := coalesce(old.supplier_type, 'wholesaler');
+  end if;
+  if new.role <> 'rider' then
+    new.meat_permit_no := null;
+    new.meat_permit_expiry := null;
+    new.vehicle_reg := null;
+    new.load_capacity_kg := null;
+  elsif auth.uid() is not null and not is_admin() and (
+    new.meat_permit_no is distinct from old.meat_permit_no
+    or new.meat_permit_expiry is distinct from old.meat_permit_expiry
+    or new.vehicle_reg is distinct from old.vehicle_reg
+  ) then
+    new.is_verified := false;  -- changed permit details need checking again
   end if;
   new.phone := normalize_ke_phone(new.phone);
   new.updated_at := now();
@@ -518,7 +552,7 @@ declare
 begin
   select * into v_me from profiles where id = v_uid;
   if v_me.location is null then
-    raise exception 'Set your shop location in Settings before ordering';
+    raise exception 'Set your butchery location on your account page before ordering';
   end if;
 
   select * into v_sup from profiles where id = p_supplier_id and role = 'supplier';
@@ -721,7 +755,44 @@ $$;
 -- ---------------------------------------------------------------------------
 -- Supplier
 -- ---------------------------------------------------------------------------
--- Tell nearby riders who are available that day about an open run.
+-- Total weight of the live orders in a run. Meat is sold by the kg.
+create or replace function public.run_load_kg(p_run_id uuid)
+returns numeric language sql stable security definer
+set search_path = public
+as $$
+  select coalesce(sum(oi.quantity), 0)
+  from orders o
+  join order_items oi on oi.order_id = o.id
+  join products p on p.id = oi.product_id and p.unit = 'kg'
+  where o.run_id = p_run_id and o.status in ('confirmed', 'assigned', 'picked_up')
+$$;
+
+-- Why a carrier cannot take a run, or null if they can.
+create or replace function public.carrier_block_reason(p_carrier profiles, p_run_id uuid, p_run_date date)
+returns text language plpgsql stable security definer
+set search_path = public
+as $$
+declare
+  v_kg numeric := run_load_kg(p_run_id);
+begin
+  if nullif(btrim(p_carrier.meat_permit_no), '') is null or p_carrier.meat_permit_expiry is null then
+    return 'No meat transport permit is recorded on your account';
+  end if;
+  if p_carrier.meat_permit_expiry < p_run_date then
+    return 'Your meat transport permit expires before ' || to_char(p_run_date, 'Dy DD Mon') || '. Renew it and update your account page';
+  end if;
+  if nullif(btrim(p_carrier.vehicle_reg), '') is null or p_carrier.load_capacity_kg is null then
+    return 'Add your vehicle registration and load capacity on your account page';
+  end if;
+  if v_kg > p_carrier.load_capacity_kg then
+    return 'This run is ' || v_kg || ' kg, more than the ' || p_carrier.load_capacity_kg || ' kg load capacity';
+  end if;
+  return null;
+end
+$$;
+
+-- Tell nearby carriers who are available that day, hold a valid permit and
+-- can carry the load about an open run.
 create or replace function public.offer_run(p_run_id uuid)
 returns int language plpgsql security definer
 set search_path = public, extensions
@@ -743,6 +814,7 @@ begin
     join rider_availability a on a.rider_id = p.id and a.available_date = v_run.run_date
     where p.role = 'rider' and p.location is not null
       and st_dwithin(p.location, v_sup.location, p.service_radius_km * 1000)
+      and carrier_block_reason(p, p_run_id, v_run.run_date) is null
       and not exists (
         select 1 from delivery_runs r
         where r.rider_id = p.id and r.run_date = v_run.run_date and r.status in ('assigned', 'picked_up')
@@ -750,10 +822,10 @@ begin
       and not exists (select 1 from run_offers o where o.run_id = p_run_id and o.rider_id = p.id)
   loop
     insert into run_offers (run_id, rider_id) values (p_run_id, v_rider_id);
-    perform notify(v_rider_id, 'run_offer', 'Delivery run available',
+    perform notify(v_rider_id, 'run_offer', 'Meat delivery run available',
       'Pickup at ' || coalesce(v_sup.business_name, v_sup.full_name) || ', '
         || coalesce(v_sup.address, 'see app') || ' on ' || to_char(v_run.run_date, 'Dy DD Mon')
-        || ' at 05:00. Open the app to accept.',
+        || ' at 05:00, ' || run_load_kg(p_run_id) || ' kg so far. Open the app to accept.',
       jsonb_build_object('run_id', p_run_id), true);
     v_count := v_count + 1;
   end loop;
@@ -863,7 +935,7 @@ begin
     raise exception 'Run not found';
   end if;
   if v_run.status <> 'open' or v_run.rider_id is not null then
-    raise exception 'Another rider has already taken this run';
+    raise exception 'Another carrier has already taken this run';
   end if;
   if v_run.run_date < today_nairobi() then
     raise exception 'This run''s delivery date has passed';
@@ -871,7 +943,11 @@ begin
 
   select * into v_rider from profiles where id = p_rider_id and role = 'rider';
   if not found then
-    raise exception 'Rider not found';
+    raise exception 'Carrier not found';
+  end if;
+  if carrier_block_reason(v_rider, p_run_id, v_run.run_date) is not null then
+    raise exception '%', (case when p_rider_id = auth.uid() then '' else v_rider.full_name || ': ' end)
+      || carrier_block_reason(v_rider, p_run_id, v_run.run_date);
   end if;
   if exists (
     select 1 from delivery_runs
@@ -888,8 +964,9 @@ begin
   values (p_rider_id, v_run.run_date) on conflict do nothing;
 
   select * into v_sup from profiles where id = v_run.supplier_id;
-  perform notify(v_run.supplier_id, 'run_assigned', 'Rider booked for ' || to_char(v_run.run_date, 'Dy DD Mon'),
-    v_rider.full_name || ' (' || coalesce(v_rider.phone, 'no phone') || ') will collect at 05:00. Have the goods packed.',
+  perform notify(v_run.supplier_id, 'run_assigned', 'Carrier booked for ' || to_char(v_run.run_date, 'Dy DD Mon'),
+    v_rider.full_name || ' (' || coalesce(v_rider.phone, 'no phone') || ', vehicle ' || coalesce(v_rider.vehicle_reg, '?')
+      || ') will collect at 05:00. Have the meat packed and the certificate of transport ready.',
     jsonb_build_object('run_id', p_run_id), true);
   perform notify(p_rider_id, 'run_assigned', 'Run booked for ' || to_char(v_run.run_date, 'Dy DD Mon'),
     'Collect at ' || coalesce(v_sup.business_name, v_sup.full_name) || ', ' || coalesce(v_sup.address, 'see app')
@@ -897,14 +974,15 @@ begin
     jsonb_build_object('run_id', p_run_id));
 
   for v_order in select * from orders where run_id = p_run_id and status = 'assigned' loop
-    perform notify(v_order.retailer_id, 'rider_assigned', 'Rider booked for order #' || v_order.order_no,
+    perform notify(v_order.retailer_id, 'rider_assigned', 'Carrier booked for order #' || v_order.order_no,
       v_rider.full_name || ' will deliver on ' || to_char(v_order.delivery_date, 'Dy DD Mon') || ', 05:00–07:00.',
       jsonb_build_object('order_id', v_order.id));
   end loop;
 end
 $$;
 
--- Supplier books a rider they know, by phone number.
+-- Supplier books a carrier they know, by phone number. The same permit and
+-- capacity checks apply (in assign_run).
 create or replace function public.supplier_assign_rider(p_run_id uuid, p_rider_phone text)
 returns void language plpgsql security definer
 set search_path = public
@@ -920,11 +998,11 @@ begin
   select array_agg(id) into v_rider_ids from profiles
   where role = 'rider' and phone = normalize_ke_phone(p_rider_phone);
   if v_rider_ids is null then
-    raise exception 'No rider is registered with phone %. Ask them to sign up as a rider first',
+    raise exception 'No carrier is registered with phone %. Ask them to sign up as a meat carrier first',
       normalize_ke_phone(p_rider_phone);
   end if;
   if array_length(v_rider_ids, 1) > 1 then
-    raise exception 'More than one rider uses that phone number. Contact support';
+    raise exception 'More than one carrier uses that phone number. Contact support';
   end if;
 
   perform assign_run(p_run_id, v_rider_ids[1]);
@@ -1002,7 +1080,9 @@ returns table (
   pickup_km numeric,
   drops int,
   rider_fee numeric,
-  i_am_available boolean
+  i_am_available boolean,
+  load_kg numeric,
+  blocked_reason text
 ) language sql stable security definer
 set search_path = public, extensions
 as $$
@@ -1012,7 +1092,9 @@ as $$
     road_km(me.location, s.location),
     (select count(*) from orders o where o.run_id = r.id)::int,
     r.rider_fee,
-    exists (select 1 from rider_availability a where a.rider_id = me.id and a.available_date = r.run_date)
+    exists (select 1 from rider_availability a where a.rider_id = me.id and a.available_date = r.run_date),
+    run_load_kg(r.id),
+    carrier_block_reason(me, r.id, r.run_date)
   from profiles me
   join delivery_runs r on r.status = 'open' and r.rider_id is null and r.run_date >= today_nairobi()
   join profiles s on s.id = r.supplier_id
@@ -1032,12 +1114,12 @@ declare
 begin
   select * into v_me from profiles where id = v_uid;
   if v_me.location is null then
-    raise exception 'Set your stage location in Settings first';
+    raise exception 'Set your base location on your account page first';
   end if;
   select s.location into v_sup_location from delivery_runs r
   join profiles s on s.id = r.supplier_id where r.id = p_run_id;
   if v_sup_location is null or not st_dwithin(v_me.location, v_sup_location, v_me.service_radius_km * 1000) then
-    raise exception 'This pickup is outside your riding range';
+    raise exception 'This pickup is outside your collection range';
   end if;
   perform assign_run(p_run_id, v_uid);
 end
@@ -1067,14 +1149,14 @@ begin
   insert into run_offers (run_id, rider_id) values (p_run_id, v_uid);  -- don't re-offer to them
 
   select full_name into v_rider_name from profiles where id = v_uid;
-  perform notify(v_run.supplier_id, 'run_released', 'Rider cancelled ' || to_char(v_run.run_date, 'Dy DD Mon') || ' run',
-    v_rider_name || ' can no longer do this run. We are offering it to other riders. You can also book your own rider in the app.',
+  perform notify(v_run.supplier_id, 'run_released', 'Carrier cancelled ' || to_char(v_run.run_date, 'Dy DD Mon') || ' run',
+    v_rider_name || ' can no longer do this run. We are offering it to other carriers. You can also book your own carrier in the app.',
     jsonb_build_object('run_id', p_run_id), true);
   perform offer_run(p_run_id);
 end
 $$;
 
-create or replace function public.mark_run_picked_up(p_run_id uuid)
+create or replace function public.mark_run_picked_up(p_run_id uuid, p_transport_cert_no text)
 returns void language plpgsql security definer
 set search_path = public
 as $$
@@ -1091,8 +1173,13 @@ begin
   if v_run.status <> 'assigned' then
     raise exception 'This run is already %', v_run.status;
   end if;
+  if nullif(btrim(p_transport_cert_no), '') is null then
+    raise exception 'Enter the certificate of transport number from the slaughterhouse inspector';
+  end if;
 
-  update delivery_runs set status = 'picked_up', picked_up_at = now() where id = p_run_id;
+  update delivery_runs
+  set status = 'picked_up', picked_up_at = now(), transport_cert_no = btrim(p_transport_cert_no)
+  where id = p_run_id;
   update orders set status = 'picked_up', picked_up_at = now(), updated_at = now()
   where run_id = p_run_id and status = 'assigned';
 
@@ -1103,8 +1190,9 @@ begin
     where o.run_id = p_run_id and o.status = 'picked_up'
   loop
     perform notify(v_order.retailer_id, 'order_picked_up', 'Order #' || v_order.order_no || ' on the way',
-      v_rider.full_name || ' (' || coalesce(v_rider.phone, '') || ') is bringing your stock. Pay '
-        || ksh(v_order.total) || '. Check the goods, then give the rider code ' || v_order.delivery_code || '.',
+      v_rider.full_name || ' (' || coalesce(v_rider.phone, '') || ') is bringing your meat. Pay '
+        || ksh(v_order.total) || '. Check the weight and the inspection stamp, then give the carrier code '
+        || v_order.delivery_code || '.',
       jsonb_build_object('order_id', v_order.id), true);
   end loop;
 end
@@ -1184,7 +1272,7 @@ begin
       || '. Stock updated. Report any problem in the app within 24 hours.',
     jsonb_build_object('order_id', p_order_id), true);
   perform notify(v_order.supplier_id, 'order_delivered', 'Order #' || v_order.order_no || ' delivered',
-    'Rider collected ' || ksh(v_amount) || case when v_amount < v_order.total
+    'Carrier collected ' || ksh(v_amount) || case when v_amount < v_order.total
       then ' (short of ' || ksh(v_order.total) || ')' else '' end || '.',
     jsonb_build_object('order_id', p_order_id));
 
@@ -1218,10 +1306,10 @@ begin
   update orders set status = 'failed', status_reason = btrim(p_reason), updated_at = now() where id = p_order_id;
 
   perform notify(v_order.retailer_id, 'order_failed', 'Order #' || v_order.order_no || ' not delivered',
-    'Rider: ' || btrim(p_reason) || '. Contact the supplier to rearrange.',
+    'Carrier: ' || btrim(p_reason) || '. Contact the supplier to rearrange.',
     jsonb_build_object('order_id', p_order_id), true);
   perform notify(v_order.supplier_id, 'order_failed', 'Order #' || v_order.order_no || ' not delivered',
-    'Rider: ' || btrim(p_reason) || '. The goods are coming back to you; re-add them to your stock.',
+    'Carrier: ' || btrim(p_reason) || '. The meat is coming back to you; re-add it to your stock.',
     jsonb_build_object('order_id', p_order_id), true);
 
   perform complete_run_if_done(v_order.run_id);
@@ -1232,7 +1320,8 @@ $$;
 -- Scheduled sweeps (called by /api/cron/* with the service role)
 -- ---------------------------------------------------------------------------
 -- 21:05 — after the cutoff: nudge suppliers about unconfirmed orders for
--- tomorrow and re-offer open runs to riders who became available since.
+-- tomorrow, re-offer open runs to carriers who became available since, and
+-- remind carriers whose meat transport permit expires in 30 or 7 days or today.
 create or replace function public.evening_sweep()
 returns jsonb language plpgsql security definer
 set search_path = public
@@ -1242,6 +1331,7 @@ declare
   v_rec record;
   v_nudged int := 0;
   v_offers int := 0;
+  v_permits int := 0;
 begin
   for v_rec in
     select supplier_id, count(*) as n from orders
@@ -1257,7 +1347,22 @@ begin
     v_offers := v_offers + offer_run(v_rec.id);
   end loop;
 
-  return jsonb_build_object('suppliers_nudged', v_nudged, 'rider_offers', v_offers);
+  -- Runs once a day, so matching the exact day sends each reminder once.
+  for v_rec in
+    select id, meat_permit_expiry, meat_permit_expiry - today_nairobi() as days_left
+    from profiles
+    where role = 'rider' and meat_permit_expiry - today_nairobi() in (30, 7, 0)
+  loop
+    perform notify(v_rec.id, 'permit_expiring',
+      case when v_rec.days_left = 0 then 'Meat transport permit expires today'
+        else 'Meat transport permit expires in ' || v_rec.days_left || ' days' end,
+      'Your permit expires on ' || to_char(v_rec.meat_permit_expiry, 'Dy DD Mon YYYY')
+        || '. You cannot take runs after that date. Renew it and update your account page.',
+      '{}', true);
+    v_permits := v_permits + 1;
+  end loop;
+
+  return jsonb_build_object('suppliers_nudged', v_nudged, 'rider_offers', v_offers, 'permit_reminders', v_permits);
 end
 $$;
 
@@ -1290,8 +1395,8 @@ begin
     select * from delivery_runs
     where status = 'open' and run_date = v_today and supplier_alerted_at is null
   loop
-    perform notify(v_run.supplier_id, 'run_unassigned', 'No rider for today''s deliveries',
-      'No rider has taken your run yet. Book your own rider in the app with their phone number.',
+    perform notify(v_run.supplier_id, 'run_unassigned', 'No carrier for today''s deliveries',
+      'No carrier has taken your run yet. Book a licensed meat carrier in the app with their phone number.',
       jsonb_build_object('run_id', v_run.id), true);
     update delivery_runs set supplier_alerted_at = now() where id = v_run.id;
     v_alerted := v_alerted + 1;
@@ -1402,6 +1507,8 @@ revoke execute on function
   public.notify(uuid, text, text, text, jsonb, boolean),
   public.offer_run(uuid),
   public.assign_run(uuid, uuid),
+  public.run_load_kg(uuid),
+  public.carrier_block_reason(public.profiles, uuid, date),
   public.complete_run_if_done(uuid),
   public.handle_new_user(),
   public.guard_profile_update(),
@@ -1435,7 +1542,7 @@ revoke execute on function
   public.open_runs_for_me(),
   public.accept_run(uuid),
   public.release_run(uuid),
-  public.mark_run_picked_up(uuid),
+  public.mark_run_picked_up(uuid, text),
   public.confirm_delivery(uuid, text, public.payment_method, numeric, text),
   public.fail_delivery(uuid, text)
 from public, anon;
@@ -1452,7 +1559,7 @@ grant execute on function
   public.open_runs_for_me(),
   public.accept_run(uuid),
   public.release_run(uuid),
-  public.mark_run_picked_up(uuid),
+  public.mark_run_picked_up(uuid, text),
   public.confirm_delivery(uuid, text, public.payment_method, numeric, text),
   public.fail_delivery(uuid, text)
 to authenticated;
@@ -1472,21 +1579,15 @@ $$;
 -- ---------------------------------------------------------------------------
 -- Seed catalog
 -- ---------------------------------------------------------------------------
+-- Everything is sold by the kg so a run's load can be added up.
 insert into public.products (name, category, unit) values
-  ('Maize', 'Grains', 'kg'),
-  ('Beans (Rosecoco)', 'Grains', 'kg'),
-  ('Rice (Pishori)', 'Grains', 'kg'),
-  ('Tomatoes', 'Vegetables', 'kg'),
-  ('Red Onions', 'Vegetables', 'kg'),
-  ('Irish Potatoes', 'Vegetables', 'kg'),
-  ('Cabbage', 'Vegetables', 'heads'),
-  ('Sukuma Wiki', 'Vegetables', 'bunches'),
-  ('Spinach', 'Vegetables', 'bunches'),
-  ('Carrots', 'Vegetables', 'kg'),
-  ('Bananas (Ripe)', 'Fruits', 'bunches'),
-  ('Avocados', 'Fruits', 'pieces'),
-  ('Fresh Milk', 'Dairy', 'litres'),
-  ('Farm Eggs', 'Dairy', 'trays'),
-  ('Cooking Oil', 'Essentials', 'litres'),
-  ('Sugar', 'Essentials', 'kg')
+  ('Beef (with bone)', 'Beef', 'kg'),
+  ('Beef (boneless)', 'Beef', 'kg'),
+  ('Beef steak (fillet)', 'Beef', 'kg'),
+  ('Beef bones', 'Beef', 'kg'),
+  ('Goat meat', 'Goat & mutton', 'kg'),
+  ('Mutton', 'Goat & mutton', 'kg'),
+  ('Matumbo (beef tripe)', 'Offal', 'kg'),
+  ('Beef liver', 'Offal', 'kg'),
+  ('Goat offal (mixed)', 'Offal', 'kg')
 on conflict (name) do nothing;

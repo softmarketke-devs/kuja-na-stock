@@ -21,7 +21,7 @@ export async function assignRider(_prev: ActionResult, formData: FormData): Prom
       p_run_id: str(formData, 'run_id'),
       p_rider_phone: str(formData, 'rider_phone'),
     })
-    return 'Rider booked. They have been notified.'
+    return 'Carrier booked. They have been notified.'
   })
 }
 

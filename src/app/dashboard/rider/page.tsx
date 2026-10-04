@@ -4,6 +4,7 @@ import { ChevronRight } from 'lucide-react'
 import { requireProfile } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import { formatDate, ksh, nairobiDate } from '@/lib/format'
+import { permitStatus } from '@/lib/permit'
 import { acceptRun, setAvailability } from '@/app/actions/rider'
 import { ActionForm, SubmitButton } from '@/components/ActionForm'
 import { Card, Empty, RunStatusBadge, SectionTitle, primaryButton } from '@/components/ui'
@@ -36,18 +37,35 @@ export default async function RiderHome() {
   const offers = (openRuns ?? []) as OpenRun[]
   const active = (myRuns ?? []) as DeliveryRun[]
   const weekEarnings = (recent ?? []).reduce((s: number, r: { rider_fee: number }) => s + Number(r.rider_fee), 0)
+  const permit = permitStatus(profile.meat_permit_no, profile.meat_permit_expiry, today)
 
   return (
     <div className="space-y-6">
+      {permit.state !== 'valid' && (
+        <div
+          className={clsx(
+            'border p-3 text-sm',
+            permit.state === 'expiring' ? 'border-orange-200 bg-orange-50 text-orange-900' : 'border-red-200 bg-red-50 text-red-800',
+          )}
+        >
+          {permit.state === 'expired' && 'Your meat transport permit has expired. You cannot take runs until you renew it. '}
+          {permit.state === 'missing' && 'No meat transport permit is recorded, so you cannot take runs. '}
+          {permit.state === 'expiring' &&
+            `Your meat transport permit ${permit.daysLeft === 0 ? 'expires today' : `expires in ${permit.daysLeft} days`}. Renew it in time to keep taking runs. `}
+          <Link href="/dashboard/settings" className="font-bold underline">
+            View account
+          </Link>
+        </div>
+      )}
       <Card className="p-4 flex items-center justify-between">
         <div>
-          <div className="text-[11px] font-bold uppercase text-slate-500">Earned last 7 days</div>
+          <div className="text-[13px] font-bold uppercase text-slate-500">Earned last 7 days</div>
           <div className="text-2xl font-black">{ksh(weekEarnings)}</div>
         </div>
         <div className="text-sm text-slate-600 text-right">
-          Range {profile.service_radius_km} km
+          Range {profile.service_radius_km} km from {profile.address || 'your base'}
           <br />
-          from {profile.address || 'your stage'}
+          Capacity {profile.load_capacity_kg ? `${profile.load_capacity_kg} kg` : 'not set'}
         </div>
       </Card>
 
@@ -80,7 +98,7 @@ export default async function RiderHome() {
       </section>
 
       <section>
-        <SectionTitle>When can you ride?</SectionTitle>
+        <SectionTitle>When can you deliver?</SectionTitle>
         <p className="text-sm text-slate-600 mb-2">Mark the mornings you’re free. We SMS you when a run near you opens.</p>
         <div className="grid grid-cols-4 gap-2">
           {days.map((d) => {
@@ -109,7 +127,7 @@ export default async function RiderHome() {
       <section>
         <SectionTitle>Runs near you</SectionTitle>
         {profile.lat === null ? (
-          <Empty>Set your stage location in Settings to see runs.</Empty>
+          <Empty>Set your base location on your account page to see runs.</Empty>
         ) : offers.length === 0 ? (
           <Empty>No open runs in your range right now. Suppliers confirm orders through the evening.</Empty>
         ) : (
@@ -123,23 +141,27 @@ export default async function RiderHome() {
                     </div>
                     <div className="text-sm text-slate-600">
                       Pickup 05:00 at {run.supplier_address || 'supplier'} ({run.pickup_km} km from you) · {run.drops} drop
-                      {run.drops === 1 ? '' : 's'}
+                      {run.drops === 1 ? '' : 's'} · {Number(run.load_kg)} kg so far
                     </div>
                   </div>
                   <div className="text-right shrink-0">
                     <div className="text-lg font-black">{ksh(run.rider_fee)}</div>
-                    <div className="text-[11px] text-slate-500">so far</div>
+                    <div className="text-[13px] text-slate-500">so far</div>
                   </div>
                 </div>
                 {!run.i_am_available && (
                   <p className="text-xs text-slate-500">Accepting marks you available on {formatDate(run.run_date)}.</p>
                 )}
-                <ActionForm action={acceptRun}>
-                  <input type="hidden" name="run_id" value={run.run_id} />
-                  <SubmitButton className={primaryButton + ' w-full'} pendingText="Booking…">
-                    Accept run
-                  </SubmitButton>
-                </ActionForm>
+                {run.blocked_reason ? (
+                  <p className="text-sm text-red-700">{run.blocked_reason}</p>
+                ) : (
+                  <ActionForm action={acceptRun}>
+                    <input type="hidden" name="run_id" value={run.run_id} />
+                    <SubmitButton className={primaryButton + ' w-full'} pendingText="Booking…">
+                      Accept run
+                    </SubmitButton>
+                  </ActionForm>
+                )}
               </Card>
             ))}
           </div>

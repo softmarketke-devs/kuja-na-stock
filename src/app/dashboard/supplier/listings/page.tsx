@@ -46,7 +46,7 @@ export default async function ListingsPage() {
                   <input type="hidden" name="product_id" value={l.product_id} />
                   <ListingFields listing={l} unit={l.product?.unit ?? ''} />
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] text-slate-500">Updated {formatDateTime(l.updated_at)}</span>
+                    <span className="text-[13px] text-slate-500">Updated {formatDateTime(l.updated_at)}</span>
                     <SubmitButton className={secondaryButton} pendingText="Saving…">
                       Save
                     </SubmitButton>

@@ -37,7 +37,7 @@ export default async function NotificationsPage() {
             <div key={n.id} className={clsx('p-3', !n.is_read && 'bg-orange-50/60 border-l-4 border-orange-500')}>
               <div className="flex items-start justify-between gap-3">
                 <p className="font-bold text-sm">{n.title}</p>
-                <span className="text-[11px] text-slate-500 whitespace-nowrap">{formatDateTime(n.created_at)}</span>
+                <span className="text-[13px] text-slate-500 whitespace-nowrap">{formatDateTime(n.created_at)}</span>
               </div>
               <p className="text-sm text-slate-700 mt-0.5">{n.message}</p>
             </div>

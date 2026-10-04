@@ -8,7 +8,17 @@ import { formatDate, ksh, mapsLink, qty } from '@/lib/format'
 import { DELIVERY_WINDOW } from '@/lib/constants'
 import { pickUpRun, releaseRun } from '@/app/actions/rider'
 import { ActionForm, SubmitButton } from '@/components/ActionForm'
-import { Card, OrderStatusBadge, PhoneLink, RunStatusBadge, SectionTitle, dangerButton, primaryButton } from '@/components/ui'
+import {
+  Card,
+  OrderStatusBadge,
+  PhoneLink,
+  RunStatusBadge,
+  SectionTitle,
+  dangerButton,
+  inputClass,
+  labelClass,
+  primaryButton,
+} from '@/components/ui'
 import type { DeliveryRun } from '@/types'
 import { DropActions } from './DropActions'
 
@@ -38,6 +48,11 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
       packing.set(item.product_id, `${item.product?.name} (${item.product?.unit})`)
     }
   }
+
+  const totalKg = live
+    .flatMap((o) => o.items ?? [])
+    .filter((item) => item.product?.unit === 'kg')
+    .reduce((s, item) => s + Number(item.quantity), 0)
 
   const collected = drops.reduce((s, o) => s + Number(o.payment?.amount ?? 0), 0)
   const cash = drops.reduce((s, o) => s + (o.payment?.method === 'cash' ? Number(o.payment.amount) : 0), 0)
@@ -74,7 +89,7 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
             )}
           </div>
           <div>
-            <div className="text-[11px] font-bold uppercase text-slate-500 mb-1">Check you have everything</div>
+            <div className="text-[13px] font-bold uppercase text-slate-500 mb-1">Check you have everything</div>
             <ul className="text-sm border border-slate-200 divide-y divide-slate-100">
               {[...packing.entries()].map(([pid, name]) => (
                 <li key={pid} className="flex justify-between px-2 py-1">
@@ -84,21 +99,32 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
               ))}
             </ul>
           </div>
+          <div className="text-sm font-bold">Total load: {qty(totalKg)} kg</div>
           {run.status === 'assigned' && (
-            <div className="grid gap-2 sm:grid-cols-2">
-              <ActionForm action={pickUpRun} confirmMessage="Have you loaded every item on the list?">
+            <div className="space-y-3">
+              <ul className="text-sm text-slate-700 list-disc pl-5">
+                <li>Get the certificate of transport, signed by the inspecting officer, for this consignment.</li>
+                <li>Check the meat carries the inspection stamp.</li>
+                <li>Carry it in a clean, closed container, out of direct sun.</li>
+              </ul>
+              <ActionForm action={pickUpRun} confirmMessage="Have you loaded every item and got the certificate of transport?" className="space-y-2">
                 <input type="hidden" name="run_id" value={run.id} />
+                <label className={labelClass} htmlFor="transport_cert_no">Certificate of transport number</label>
+                <input id="transport_cert_no" name="transport_cert_no" required className={inputClass} />
                 <SubmitButton className={primaryButton + ' w-full'} pendingText="Saving…">
-                  Goods collected, start deliveries
+                  Meat collected, start deliveries
                 </SubmitButton>
               </ActionForm>
-              <ActionForm action={releaseRun} confirmMessage="Give this run back? The supplier will be told to find another rider.">
+              <ActionForm action={releaseRun} confirmMessage="Give this run back? The supplier will be told to find another carrier.">
                 <input type="hidden" name="run_id" value={run.id} />
                 <SubmitButton className={dangerButton + ' w-full'} pendingText="Releasing…">
                   I can’t do this run
                 </SubmitButton>
               </ActionForm>
             </div>
+          )}
+          {run.transport_cert_no && (
+            <div className="text-sm text-slate-600">Certificate of transport: <span className="font-bold">{run.transport_cert_no}</span></div>
           )}
         </Card>
       </section>
@@ -110,7 +136,7 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
             <Card key={order.id} className="p-4 space-y-2">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="text-[11px] text-slate-500 font-bold">
+                  <div className="text-[13px] text-slate-500 font-bold">
                     Stop {i + 1} · #{order.order_no} · {order.distance_km} km from pickup
                   </div>
                   <div className="font-black">{order.retailer?.business_name || order.retailer?.full_name}</div>

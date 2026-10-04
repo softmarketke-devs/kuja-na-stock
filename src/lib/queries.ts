@@ -1,7 +1,9 @@
 // PostgREST select strings shared by the dashboards. RLS decides what each
 // role actually gets back (e.g. `secret` is only ever returned to the retailer).
 
-const CONTACT = 'id, full_name, business_name, phone, address, lat, lng'
+// Permit fields are null for everyone except carriers; shown so suppliers and
+// butcheries can see who is carrying their meat.
+const CONTACT = 'id, full_name, business_name, phone, address, lat, lng, meat_permit_no, meat_permit_expiry, vehicle_reg, is_verified'
 
 export const ORDER_ITEMS = 'items:order_items(*, product:products(*))'
 

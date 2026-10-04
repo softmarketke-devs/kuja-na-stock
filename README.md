@@ -2,17 +2,17 @@
 
 **Order tonight. Stocked by 7 AM.**
 
-Nairobi shop owners (dukas, kibandas, mama mbogas) order stock in the evening from farms and depots near them. The supplier confirms and packs overnight, and a boda rider collects at 05:00 and delivers between 05:00 and 07:00, before the shop opens. No 4 AM trip to Wakulima, Marikiti or Gikomba.
+A business-to-business (B2B) meat logistics platform. Nairobi butcheries order meat in the evening from slaughterhouses and meat wholesalers near them. The supplier confirms and packs overnight, and a licensed meat carrier collects at 05:00 with the certificate of transport and delivers between 05:00 and 07:00, before the butchery opens.
 
-A Next.js PWA on Supabase (Postgres + Auth + Realtime), with SMS through Africa's Talking.
+Every user is a business: butcheries buy, slaughterhouses and wholesalers sell, and licensed meat carriers deliver. It is a Next.js PWA on Supabase (Postgres + Auth + Realtime), with SMS through Africa's Talking.
 
 ---
 
 ## How an order moves
 
 ```
- Retailer                 Supplier                  Rider                    System
- ────────                 ────────                  ─────                    ──────
+ Butchery                 Supplier                  Carrier                  System
+ ────────                 ────────                  ───────                  ──────
  compares suppliers
  (price, km, fee)
  places order ─────────▶ SMS "new order"
@@ -20,20 +20,21 @@ A Next.js PWA on Supabase (Postgres + Auth + Realtime), with SMS through Africa'
                          ─ or decline ──▶ SMS to retailer
                          order joins the supplier's
                          morning run (max 6 drops) ──▶ SMS to nearby
-                                                       available riders
+                                                       eligible carriers
                                                      accepts run ──────────▶ first to accept wins
- SMS "rider booked"  ◀── SMS "rider booked"
-                                                     05:00 collects goods
+ SMS "carrier booked" ◀─ SMS "carrier booked"
+                                                     05:00 collects meat,
+                                                     enters certificate no.
  SMS "on the way" +  ◀──────────────────────────────  marks picked up
  4-digit code
- checks goods, pays,
+ checks weight/stamp, pays,
  gives code ──────────────────────────────────────▶ enters code + payment
  stock auto-updated                                  ─ or "couldn't deliver"
  can report a problem
  within 24 h ──────────▶ SMS; resolves it
                                                                               21:05 nudge suppliers, re-offer runs
                                                                               03:30 cancel unconfirmed orders,
-                                                                                    warn runs with no rider
+                                                                                    warn runs with no carrier
 ```
 
 ### Rules
@@ -42,11 +43,14 @@ A Next.js PWA on Supabase (Postgres + Auth + Realtime), with SMS through Africa'
 |---|---|
 | Order cutoff | 21:00 Nairobi time. Before → delivered tomorrow, after → the day after |
 | Delivery window | 05:00–07:00 |
-| Delivery fee | KSh 50 per road-km (straight line × 1.3), min KSh 100, paid to the rider |
+| Delivery fee | KSh 50 per road-km (straight line × 1.3), min KSh 100, paid to the carrier |
+| Carrier eligibility | Meat transport permit recorded and valid on the run date, vehicle registration recorded, and run weight within the carrier's load capacity |
+| Pickup | Carrier must enter the certificate of transport number |
 | Run size | Up to 6 drops per supplier run |
 | Unconfirmed orders | Cancelled at 03:30 on the delivery day |
 | Delivery proof | Retailer's 4-digit code; 5 wrong tries locks it |
 | Problems | Reportable within 24 h of delivery |
+| Permit reminders | SMS 30 and 7 days before a carrier's permit expires, and on the expiry date (evening sweep) |
 
 These live in `supabase/schema.sql` (enforced) and `src/lib/constants.ts` (display).
 
@@ -56,11 +60,11 @@ These live in `supabase/schema.sql` (enforced) and `src/lib/constants.ts` (displ
 
 | Role | Screens | Can |
 |---|---|---|
-| **Retailer** | `/dashboard/retailer` (+ `/order`, `/history`) | Track stock with low-stock alerts, compare suppliers by landed cost, order, repeat last basket, cancel before confirmation, see delivery code, report problems |
-| **Supplier** (farm or depot) | `/dashboard/supplier` (+ `/listings`) | Manage prices and stock, confirm or decline orders, see morning runs with packing lists, book their own rider by phone, resolve problems |
-| **Rider** | `/dashboard/rider` (+ `/run/[id]`) | Mark available mornings, accept nearby runs, pickup checklist, directions per drop, confirm delivery with code and payment, settlement summary |
+| **Retailer** (butchery) | `/dashboard/retailer` (+ `/order`, `/history`) | Track stock with low-stock alerts, compare suppliers by landed cost, order, repeat last basket, cancel before confirmation, see delivery code, report problems |
+| **Supplier** (slaughterhouse or meat wholesaler) | `/dashboard/supplier` (+ `/listings`) | Manage prices and stock, confirm or decline orders, see morning runs with packing lists, book their own rider by phone, resolve problems |
+| **Rider** (meat carrier) | `/dashboard/rider` (+ `/run/[id]`) | Register once with meat transport permit, vehicle and load capacity; see permit status and get expiry reminders on the account page; mark available mornings, accept nearby runs that fit their capacity, enter the certificate of transport at pickup, pickup checklist, directions per drop, confirm delivery with code and payment, settlement summary |
 
-Everyone sets their location in `/dashboard/settings` (GPS button or lat/lng). Distances and fees are calculated from it.
+Everyone sets their location on the account page (`/dashboard/settings`) (GPS button or lat/lng). Distances and fees are calculated from it.
 
 ---
 
@@ -114,3 +118,7 @@ To make someone an admin: `update profiles set role = 'admin' where id = '…';`
 - Route optimisation. Drops are ordered nearest-first from the pickup.
 - Admin console. Admin can read everything via RLS, but has no dedicated screens.
 - Automated tests for the SQL functions (needs a local Supabase / Postgres).
+- Admin screen to check carriers' meat transport permits. Today `is_verified` is set by hand in the SQL editor, and runs are not restricted to verified carriers.
+- Cold-chain monitoring (temperature during transport).
+- Admin screen to check carriers' meat transport permits. Today `is_verified` is set by hand in the SQL editor, and runs are not restricted to verified carriers.
+- Cold-chain monitoring (temperature during transport).

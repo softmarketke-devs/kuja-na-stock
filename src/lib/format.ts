@@ -80,9 +80,9 @@ export function mapsLink(lat: number, lng: number) {
 
 export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
   pending: 'Waiting for supplier',
-  confirmed: 'Confirmed, finding rider',
+  confirmed: 'Confirmed, finding carrier',
   rejected: 'Declined',
-  assigned: 'Rider booked',
+  assigned: 'Carrier booked',
   picked_up: 'On the way',
   delivered: 'Delivered',
   failed: 'Not delivered',
@@ -90,8 +90,8 @@ export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
 }
 
 export const RUN_STATUS_LABEL: Record<RunStatus, string> = {
-  open: 'Needs a rider',
-  assigned: 'Rider booked',
+  open: 'Needs a carrier',
+  assigned: 'Carrier booked',
   picked_up: 'Out for delivery',
   completed: 'Completed',
   cancelled: 'Cancelled',

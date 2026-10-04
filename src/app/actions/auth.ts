@@ -4,7 +4,7 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { str } from '@/lib/actions'
-import { isKenyanMobile, normalizePhone } from '@/lib/format'
+import { isKenyanMobile, nairobiDate, normalizePhone } from '@/lib/format'
 import type { ActionResult } from '@/types'
 
 function safeNext(next: string) {
@@ -34,6 +34,20 @@ export async function signUp(_prev: ActionResult, formData: FormData): Promise<A
   }
   if (password.length < 8) return { ok: false, error: 'Password must be at least 8 characters' }
 
+  let carrier: Record<string, unknown> = {}
+  if (role === 'rider') {
+    const permitNo = str(formData, 'meat_permit_no')
+    const expiry = str(formData, 'meat_permit_expiry')
+    const vehicleReg = str(formData, 'vehicle_reg').toUpperCase()
+    const capacity = Number(str(formData, 'load_capacity_kg'))
+    if (!permitNo) return { ok: false, error: 'Enter your meat transport permit number' }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(expiry)) return { ok: false, error: 'Enter the permit expiry date' }
+    if (expiry < nairobiDate()) return { ok: false, error: 'That permit has expired. Renew it before registering' }
+    if (!vehicleReg) return { ok: false, error: 'Enter your vehicle registration' }
+    if (!(capacity > 0 && capacity <= 5000)) return { ok: false, error: 'Load capacity must be between 1 and 5000 kg' }
+    carrier = { meat_permit_no: permitNo, meat_permit_expiry: expiry, vehicle_reg: vehicleReg, load_capacity_kg: capacity }
+  }
+
   // Public address the confirmation link should open. Falls back to the
   // address the form was submitted from (localhost in dev).
   const origin = process.env.NEXT_PUBLIC_SITE_URL || (await headers()).get('origin') || ''
@@ -48,7 +62,8 @@ export async function signUp(_prev: ActionResult, formData: FormData): Promise<A
         full_name: fullName,
         phone: normalizePhone(phone),
         business_name: str(formData, 'business_name') || null,
-        supplier_type: role === 'supplier' ? str(formData, 'supplier_type') || 'depot' : null,
+        supplier_type: role === 'supplier' ? str(formData, 'supplier_type') || 'wholesaler' : null,
+        ...carrier,
       },
     },
   })

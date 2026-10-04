@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.6.0] - 2026-10-03
+
+Changed focus from fresh-produce retailers to butcheries. Kuja Na Stock is a B2B meat logistics platform: butcheries buy, slaughterhouses and wholesalers sell, licensed meat carriers deliver.
+
+### Added
+- Carriers register their meat transport permit number and expiry, vehicle registration and load capacity (kg) once, at signup. Signup rejects an already-expired permit.
+- Account page (formerly Settings) shows the carrier's permit status: valid, expiring within 30 days, expired, or not recorded, plus whether Kuja Na Stock has checked it.
+- Evening sweep sends permit reminders 30 and 7 days before expiry and on the expiry date.
+- Suppliers see the booked carrier's vehicle, permit status and certificate of transport number.
+- Carriers are only offered, and can only accept or be assigned, runs when their permit is recorded and valid on the run date and the run's weight fits their load capacity (`carrier_block_reason`, `run_load_kg`).
+- Certificate of transport number required at pickup (`mark_run_picked_up(run_id, transport_cert_no)`), stored on the run.
+- Pickup checklist: certificate of transport, inspection stamp, clean closed container.
+- Changing permit or vehicle details clears `is_verified`.
+
+### Changed
+- Supplier types are now `slaughterhouse` and `wholesaler` (were `farm` and `depot`).
+- Product catalogue is meat sold by the kg: beef, goat, mutton and offal.
+- All user-facing text: butchery instead of shop, meat carrier instead of boda rider, base instead of stage.
+
+---
+
 ## [0.5.0] - 2026-09-24
 
 Refocused the product on one problem: getting stock to the kiosk before opening, without the 4 AM market trip.

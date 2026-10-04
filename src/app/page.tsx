@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Bike, KeyRound, Moon, Scale, Store, Sunrise, Truck } from 'lucide-react'
+import { FileCheck, KeyRound, Moon, Scale, Store, Sunrise, Truck, Warehouse } from 'lucide-react'
 import { DELIVERY_WINDOW, FEE_PER_KM, MIN_DELIVERY_FEE } from '@/lib/constants'
 import { primaryButton, secondaryButton } from '@/components/ui'
 
@@ -7,22 +7,22 @@ const STEPS = [
   {
     icon: Moon,
     title: 'Order by 9 PM',
-    body: 'After closing, compare nearby farms and depots side by side: price, distance and delivery fee, all shown before you order.',
+    body: 'After closing, compare nearby slaughterhouses and meat wholesalers side by side: price per kg, distance and delivery fee, all shown before you order.',
+  },
+  {
+    icon: Warehouse,
+    title: 'Supplier confirms',
+    body: 'The supplier reserves your meat overnight and packs it. You get an SMS when it’s confirmed.',
   },
   {
     icon: Truck,
-    title: 'Supplier confirms',
-    body: 'The supplier reserves your stock overnight and packs it. You get an SMS when it’s confirmed.',
-  },
-  {
-    icon: Bike,
-    title: 'Boda collects at 5 AM',
-    body: 'A rider from a nearby stage collects the morning’s orders from the supplier and delivers them along one route.',
+    title: 'Carrier collects at 5 AM',
+    body: 'A licensed meat carrier collects the morning’s orders with the certificate of transport and delivers them along one route.',
   },
   {
     icon: KeyRound,
     title: 'Check, pay, give the code',
-    body: 'Check the goods, pay the rider (cash or M-Pesa) and give them your 4-digit code. Your stock count updates automatically.',
+    body: 'Check the weight and the inspection stamp, pay the carrier (cash or M-Pesa) and give them your 4-digit code. Your stock count updates automatically.',
   },
 ]
 
@@ -51,24 +51,24 @@ export default function Home() {
         <section className="tactical-grid border-b border-slate-200">
           <div className="max-w-5xl mx-auto px-4 py-14 sm:py-20">
             <p className="text-xs font-black uppercase tracking-wider text-orange-700 flex items-center gap-2">
-              <Sunrise className="w-4 h-4" /> For Nairobi dukas, kibandas & mama mbogas
+              <Sunrise className="w-4 h-4" /> For Nairobi butcheries
             </p>
             <h1 className="text-4xl sm:text-5xl font-black tracking-tight mt-3 max-w-2xl">
               Order tonight. Stocked by 7 AM.
             </h1>
             <p className="text-lg text-slate-700 mt-4 max-w-xl">
-              Skip the 4 AM trip to Wakulima or Gikomba. Order from farms and depots near you in the evening, and a boda
-              rider brings it to your shop {DELIVERY_WINDOW}, before you open.
+              Order meat in the evening from slaughterhouses and wholesalers near you, and a licensed meat carrier brings it
+              to your butchery {DELIVERY_WINDOW}, before you open.
             </p>
             <div className="flex flex-wrap gap-2 mt-6">
               <Link href="/signup" className={primaryButton}>
-                <Store className="w-4 h-4" /> I own a shop
+                <Store className="w-4 h-4" /> I own a butchery
               </Link>
               <Link href="/signup" className={secondaryButton}>
-                <Truck className="w-4 h-4" /> I’m a supplier
+                <Warehouse className="w-4 h-4" /> I’m a supplier
               </Link>
               <Link href="/signup" className={secondaryButton}>
-                <Bike className="w-4 h-4" /> I’m a boda rider
+                <Truck className="w-4 h-4" /> I’m a meat carrier
               </Link>
             </div>
           </div>
@@ -80,7 +80,7 @@ export default function Home() {
             {STEPS.map((s, i) => (
               <li key={s.title} className="bg-white border border-slate-200 p-4">
                 <s.icon className="w-6 h-6 text-orange-600" />
-                <div className="text-[11px] font-bold text-slate-400 mt-3">STEP {i + 1}</div>
+                <div className="text-[13px] font-bold text-slate-400 mt-3">STEP {i + 1}</div>
                 <h3 className="font-black">{s.title}</h3>
                 <p className="text-sm text-slate-600 mt-1">{s.body}</p>
               </li>
@@ -94,22 +94,23 @@ export default function Home() {
               <Scale className="w-6 h-6 text-orange-600" />
               <h3 className="font-black mt-2">Prices you can see</h3>
               <p className="text-sm text-slate-600 mt-1">
-                Every supplier’s price per kg, distance and delivery fee, side by side. No broker in the middle.
+                Every supplier’s price per kg, distance and delivery fee, side by side, before you order.
               </p>
             </div>
             <div>
-              <Bike className="w-6 h-6 text-orange-600" />
-              <h3 className="font-black mt-2">Fair delivery fee</h3>
+              <FileCheck className="w-6 h-6 text-orange-600" />
+              <h3 className="font-black mt-2">Licensed carriers only</h3>
               <p className="text-sm text-slate-600 mt-1">
-                KSh {FEE_PER_KM} per km (minimum KSh {MIN_DELIVERY_FEE}), paid to the rider. Buy several items from one
-                supplier and pay one fee.
+                Carriers must record a valid meat transport permit to take runs, and enter the certificate of transport at
+                pickup. Delivery is KSh {FEE_PER_KM} per km (minimum KSh {MIN_DELIVERY_FEE}), paid to the carrier.
               </p>
             </div>
             <div>
               <KeyRound className="w-6 h-6 text-orange-600" />
               <h3 className="font-black mt-2">Nothing changes hands without your code</h3>
               <p className="text-sm text-slate-600 mt-1">
-                A delivery counts only once you give the rider your code. Short or bad stock? Report it within 24 hours.
+                A delivery counts only once you give the carrier your code. Short weight or poor quality? Report it within
+                24 hours.
               </p>
             </div>
           </div>

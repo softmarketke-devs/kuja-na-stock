@@ -124,6 +124,14 @@ Engineering progression, architectural decisions, and development roadmap for **
 
 ---
 
+### ADR-007: B2B meat logistics for butcheries (supersedes the retailer focus in ADR-005 and ADR-006)
+- **Status:** Accepted (2026-10-03)
+- **Context:** The project is a business-to-business (B2B) logistics system. Its target buyers changed from dukas, kibandas and mama mbogas to butcheries. Meat transport is regulated: the Meat Control (Transport of Meat) Regulations, 1976 require a permit to transport meat (reg. 3) and a certificate of transport signed by the inspecting officer for each consignment (reg. 8(a)). In November 2025 Nairobi County also restricted meat transport to approved vehicles traceable to the market.
+- **Decision:** Keep the order → confirm → batched run → code handover flow. Suppliers become slaughterhouses and meat wholesalers. The rider role becomes a meat carrier, kept as `rider` internally to avoid renaming every table and function. Carriers enter their permit number, permit expiry, vehicle registration and load capacity once, at registration; the account page shows the permit status (valid, expiring within 30 days, expired, not yet checked) and the evening sweep sends reminders 30 and 7 days before expiry and on the expiry date. A carrier can only take a run if the permit is valid on the run date and the run's weight fits their capacity, and must enter the certificate of transport number at pickup.
+- **Consequences:** The software records and checks what the carrier enters; it does not verify permits with the authorities. An admin still has to check permits (`is_verified`), and there is no temperature monitoring. Any database created from the old schema must be recreated from `supabase/schema.sql`.
+
+---
+
 ## 4. Verification & Testing Matrix (v0.5.0)
 
 | Check | Status |

@@ -1,7 +1,7 @@
 // Row types for supabase/schema.sql. Keep in sync when the schema changes.
 
 export type UserRole = 'retailer' | 'supplier' | 'rider' | 'admin'
-export type SupplierType = 'farm' | 'depot'
+export type SupplierType = 'slaughterhouse' | 'wholesaler'
 export type OrderStatus =
   | 'pending'
   | 'confirmed'
@@ -26,13 +26,30 @@ export interface Profile {
   lat: number | null
   lng: number | null
   service_radius_km: number
+  meat_permit_no: string | null
+  meat_permit_expiry: string | null
+  vehicle_reg: string | null
+  load_capacity_kg: number | null
   is_verified: boolean
   created_at: string
   updated_at: string
 }
 
 /** The subset of a profile other parties on an order can see. */
-export type Contact = Pick<Profile, 'id' | 'full_name' | 'business_name' | 'phone' | 'address' | 'lat' | 'lng'>
+export type Contact = Pick<
+  Profile,
+  | 'id'
+  | 'full_name'
+  | 'business_name'
+  | 'phone'
+  | 'address'
+  | 'lat'
+  | 'lng'
+  | 'meat_permit_no'
+  | 'meat_permit_expiry'
+  | 'vehicle_reg'
+  | 'is_verified'
+>
 
 export interface Product {
   id: string
@@ -102,6 +119,7 @@ export interface DeliveryRun {
   run_date: string
   status: RunStatus
   rider_fee: number
+  transport_cert_no: string | null
   created_at: string
   accepted_at: string | null
   picked_up_at: string | null
@@ -182,6 +200,9 @@ export interface OpenRun {
   drops: number
   rider_fee: number
   i_am_available: boolean
+  load_kg: number
+  /** Why this carrier can't take the run (permit, vehicle, capacity), or null. */
+  blocked_reason: string | null
 }
 
 export type ActionResult = { ok: true; message?: string } | { ok: false; error: string } | null

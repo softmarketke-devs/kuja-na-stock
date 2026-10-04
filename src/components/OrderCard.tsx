@@ -20,7 +20,7 @@ export function OrderCard({
     <Card className="p-4 space-y-3">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-[11px] text-slate-500 font-bold">
+          <div className="text-[13px] text-slate-500 font-bold">
             #{order.order_no} · {formatDate(order.delivery_date)}, {DELIVERY_WINDOW}
           </div>
           <div className="font-black truncate">{party?.business_name || party?.full_name || '—'}</div>
@@ -43,7 +43,7 @@ export function OrderCard({
           </li>
         ))}
         <li className="flex justify-between py-1.5 text-slate-600">
-          <span>Delivery ({order.distance_km} km, paid to rider)</span>
+          <span>Delivery ({order.distance_km} km, paid to carrier)</span>
           <span>{ksh(order.delivery_fee)}</span>
         </li>
         <li className="flex justify-between py-1.5 font-black">
@@ -54,7 +54,7 @@ export function OrderCard({
 
       {rider && (
         <p className="text-sm">
-          Rider: <span className="font-bold">{rider.full_name}</span> · <PhoneLink phone={rider.phone} />
+          Carrier: <span className="font-bold">{rider.full_name}</span> · <PhoneLink phone={rider.phone} />
         </p>
       )}
       {order.status_reason && ['rejected', 'failed', 'cancelled'].includes(order.status) && (

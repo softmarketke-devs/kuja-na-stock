@@ -1,7 +1,13 @@
 import type { Metadata, Viewport } from 'next'
-import { Inconsolata } from 'next/font/google'
+import { Geist, Inconsolata } from 'next/font/google'
 import './globals.css'
 import { RegisterServiceWorker } from '@/components/RegisterServiceWorker'
+
+const geist = Geist({
+  subsets: ['latin'],
+  variable: '--font-geist',
+  display: 'swap',
+})
 
 const inconsolata = Inconsolata({
   subsets: ['latin'],
@@ -12,8 +18,8 @@ const inconsolata = Inconsolata({
 export const metadata: Metadata = {
   metadataBase: new URL('https://supplier-hub-rouge.vercel.app'),
   title: 'Kuja Na Stock | Order tonight, stocked by 7 AM',
-  description: 'Nairobi shop owners order stock in the evening from nearby farms and depots, and a boda rider delivers it before opening. No 4 AM market trip.',
-  keywords: ['kuja na stock', 'duka stock delivery', 'nairobi', 'mama mboga', 'boda delivery', 'wholesale', 'farm gate'],
+  description: 'Nairobi butcheries order meat in the evening from nearby slaughterhouses and wholesalers, and a licensed meat carrier delivers it before opening.',
+  keywords: ['kuja na stock', 'butchery', 'meat delivery', 'nairobi', 'slaughterhouse', 'meat wholesaler', 'meat carrier'],
   authors: [{ name: 'Kuja Na Stock Logistics' }],
   openGraph: {
     title: 'Kuja Na Stock',
@@ -30,7 +36,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
+  viewportFit: 'cover',
   themeColor: '#ea580c',
 }
 
@@ -49,7 +55,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="KujaNaStock" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
-      <body className={`${inconsolata.variable} font-mono min-h-screen bg-[#f8fafc] text-[#0f172a] antialiased selection:bg-orange-500 selection:text-white`}>
+      <body className={`${geist.variable} ${inconsolata.variable} font-sans min-h-screen bg-[#f8fafc] text-[#0f172a] antialiased selection:bg-orange-500 selection:text-white`}>
         {children}
         <RegisterServiceWorker />
       </body>

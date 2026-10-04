@@ -1,16 +1,17 @@
 import { clsx } from 'clsx'
 import type { OrderStatus, RunStatus } from '@/types'
 import { ORDER_STATUS_LABEL, RUN_STATUS_LABEL } from '@/lib/format'
+import type { PermitState, PermitStatus } from '@/lib/permit'
 
 export const inputClass =
-  'w-full bg-white border border-slate-300 px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500'
-export const labelClass = 'block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1'
+  'w-full bg-white border border-slate-300 px-3 py-3 text-base text-slate-900 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500'
+export const labelClass = 'block text-[13px] font-semibold text-slate-600 mb-1.5'
 export const primaryButton =
-  'inline-flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white font-bold text-sm px-4 py-2.5 transition-colors'
+  'inline-flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white font-bold text-sm min-h-11 px-4 py-2.5 transition-colors'
 export const secondaryButton =
-  'inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-50 disabled:opacity-50 border border-slate-300 text-slate-800 font-bold text-sm px-4 py-2.5 transition-colors'
+  'inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-50 disabled:opacity-50 border border-slate-300 text-slate-800 font-bold text-sm min-h-11 px-4 py-2.5 transition-colors'
 export const dangerButton =
-  'inline-flex items-center justify-center gap-2 bg-white hover:bg-red-50 disabled:opacity-50 border border-red-300 text-red-700 font-bold text-sm px-4 py-2.5 transition-colors'
+  'inline-flex items-center justify-center gap-2 bg-white hover:bg-red-50 disabled:opacity-50 border border-red-300 text-red-700 font-bold text-sm min-h-11 px-4 py-2.5 transition-colors'
 
 export function Card({ children, className }: { children: React.ReactNode; className?: string }) {
   return <div className={clsx('bg-white border border-slate-200 shadow-xs', className)}>{children}</div>
@@ -39,7 +40,7 @@ const tone = {
 
 export function Badge({ children, color = 'slate' }: { children: React.ReactNode; color?: keyof typeof tone }) {
   return (
-    <span className={clsx('inline-block border px-2 py-0.5 text-[11px] font-bold whitespace-nowrap', tone[color])}>
+    <span className={clsx('inline-block border px-2 py-0.5 text-xs font-bold whitespace-nowrap', tone[color])}>
       {children}
     </span>
   )
@@ -70,6 +71,17 @@ const RUN_TONE: Record<RunStatus, keyof typeof tone> = {
 
 export function RunStatusBadge({ status }: { status: RunStatus }) {
   return <Badge color={RUN_TONE[status]}>{RUN_STATUS_LABEL[status]}</Badge>
+}
+
+const PERMIT_TONE: Record<PermitState, keyof typeof tone> = {
+  missing: 'red',
+  expired: 'red',
+  expiring: 'orange',
+  valid: 'green',
+}
+
+export function PermitBadge({ status }: { status: PermitStatus }) {
+  return <Badge color={PERMIT_TONE[status.state]}>{status.label}</Badge>
 }
 
 export function PhoneLink({ phone }: { phone: string | null | undefined }) {

@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'Kuja Na Stock PWA',
     short_name: 'KujaNaStock',
-    description: 'Order stock tonight, delivered to your shop by boda before 7 AM.',
+    description: 'Order meat tonight, delivered to your butchery before 7 AM.',
     start_url: '/dashboard',
     display: 'standalone',
     background_color: '#f8fafc',
