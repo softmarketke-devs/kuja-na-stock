@@ -138,8 +138,8 @@ Engineering progression, architectural decisions, and development roadmap for **
 | :--- | :--- |
 | `next build` (Turbopack, TypeScript) | Passed |
 | `eslint src` | Passed, 0 problems |
-| `supabase/schema.sql` executed against Postgres/Supabase | **Not yet run.** Reviewed by hand only |
-| End-to-end flow (retailer → supplier → rider → delivered) on a live Supabase project | **Not yet run** |
+| `supabase/schema.sql` executed against Supabase | Passed (applied to the project; incremental migration `20261029` also applied) |
+| End-to-end flow (retailer → supplier → carrier → delivered) on a live Supabase project | Passed, 55 database checks and 30 page/cron checks on 2026-10-29. See LAUNCH.md for what is still untested |
 | Africa's Talking sandbox SMS | **Not yet run** |
 
 Run `supabase/schema.sql` on a fresh project and walk through the "Try the full flow" steps in the README before relying on these.

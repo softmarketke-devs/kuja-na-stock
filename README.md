@@ -6,7 +6,7 @@ A B2B meat logistics app for Nairobi. Butcheries order in the evening from nearb
 
 Next.js PWA · Supabase (Postgres, Auth, Realtime) · SMS via Africa's Talking · hosted on Vercel.
 
-> **Status:** pre-pilot. It builds and lints cleanly, but the database schema and the full order flow have not been run end to end yet. See [LAUNCH.md](LAUNCH.md) for what's left before launch.
+> **Status:** pre-pilot. The order flow passes automated end-to-end checks against a live Supabase project (`tests/`). Real SMS, browser click-through and real-user testing are still to do. See [LAUNCH.md](LAUNCH.md).
 
 ## How an order moves
 

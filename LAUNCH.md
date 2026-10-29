@@ -51,6 +51,38 @@ Order matters: name and domain first (everything else hangs off them), then veri
 7. **New logo.** The 3D boda mascot (`public/icons/*`, `public/logo.*`, `src/app/icon.png`) does not fit a meat brand.
 8. **Landing copy review** with a real butcher.
 
+## Test results (2026-10-29, live Supabase project, local app)
+
+`tests/db_flow.py` (database, 55 checks) and `tests/pages_flow.py` (rendered pages and cron, 30 checks). Both create
+throwaway users, so they refuse to run without `KNS_TEST_OK=1`, and `python -I tests/db_flow.py cleanup` deletes
+the test users. After this run the database was returned to its previous state (1 profile, nothing else).
+
+Passed, driven as each role with its own token:
+- Signup trigger, phone and vehicle normalisation, users cannot promote themselves or verify themselves.
+- Supplier listing; retailers cannot list; quote shows distance and fee; min-order and stock limits.
+- RLS: another butchery cannot read an order or its delivery code; carriers cannot read any code.
+- Supplier confirm reserves stock; two orders share one run; only suppliers can confirm.
+- Carrier rules: unchecked carrier blocked, admin-only verify (retailers and carriers refused), carrier notified and
+  SMS queued, expired permit blocked, capacity blocked, first carrier to accept wins.
+- Pickup needs the certificate number; wrong code counted; five wrong codes lock the order; M-Pesa needs a
+  reference; correct code delivers, records payment and restocks the butchery; failed delivery closes the run.
+- Issue report and resolve; cancel before confirmation; decline; cutoff at 21:00 EAT.
+- Every dashboard page opens for its own role and bounces other roles; signed-out visitors go to login;
+  cron routes refuse without the secret and run with it.
+
+Not tested, so do not assume:
+- Real SMS delivery. No Africa's Talking credentials; the sweep reported messages as skipped, not sent.
+- Clicking through forms in a browser (ActionForm submits), realtime refresh, and the mobile layout of logged-in screens.
+- More than 6 drops on one run, the 03:30 sweep cancelling a real unconfirmed order, permit-expiry reminders
+  (counts were 0 because no data matched), and release/re-offer of a run.
+- The production deployment (tested against the local app, which uses the same database).
+
+Observations, not bugs:
+- Admin can mark a carrier checked even when the permit has already expired; the run is still blocked by the expiry
+  rule, but the admin screen could warn.
+- When a delivery fails, the reserved stock is not restored automatically. The supplier is told to re-add it.
+- A migration was needed for the new admin function and catalogue (already applied here).
+
 ## Benchmark: kamundiabutchery.co.ke (scraped 2026-10-29)
 
 A Nairobi retail butchery (City Market, since 1959). It is B2C, we are B2B, so only the structure transfers.
