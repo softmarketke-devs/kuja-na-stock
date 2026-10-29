@@ -68,6 +68,11 @@ export async function signUp(_prev: ActionResult, formData: FormData): Promise<A
     },
   })
   if (error) return { ok: false, error: error.message }
+  // For an email that is already registered, Supabase reports success but creates no user
+  // (empty identities) and sends no email. Say so instead of promising an email that will not come.
+  if (data.user && data.user.identities?.length === 0) {
+    return { ok: false, error: 'That email is already registered. Sign in instead, or use a different email.' }
+  }
   if (!data.session) {
     return { ok: true, message: 'Check your email and tap the confirmation link to finish signing up.' }
   }
