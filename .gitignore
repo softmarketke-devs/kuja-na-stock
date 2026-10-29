@@ -44,3 +44,6 @@ next-env.d.ts
 # local tooling
 .mcp.json
 supabase/.temp/
+
+# test output
+tests/results.json

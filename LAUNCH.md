@@ -27,6 +27,11 @@ Order matters: name and domain first (everything else hangs off them), then veri
 
 ## Needs a human (cannot be done from the repo)
 
+0. **Vercel environment variables.** Fix `SUPABASE_SERVICE_ROLE_KEY` (the copy that was entered is corrupted: it does not
+   decode as a JWT, so production cron and SMS get HTTP 401). Keep `NEXT_PUBLIC_*` variables public; mark the service key,
+   `CRON_SECRET` and `AT_*` as Sensitive with no public prefix. Add `NEXT_PUBLIC_SUPPORT_PHONE`/`_WHATSAPP`.
+   Do not run `vercel env pull` over `.env.local` until Vercel has the right values: it overwrote the working key once.
+
 1. **Choose the name.** "Kuja Na Stock" came from the produce/kiosk version. Check domain, trademark (KIPI) and
    social handles before committing. Do this before buying the domain or registering the SMS sender ID.
 2. **Wire the production URL** `https://kuja-na-stock.vercel.app`: in Vercel set `NEXT_PUBLIC_SITE_URL` to it, and in
@@ -53,7 +58,7 @@ Order matters: name and domain first (everything else hangs off them), then veri
 
 ## Test results (2026-10-29, live Supabase project, local app)
 
-`tests/db_flow.py` (database, 55 checks) and `tests/pages_flow.py` (rendered pages and cron, 30 checks). Both create
+`tests/db_flow.py` (database, 55 checks) and `tests/pages_flow.py` (rendered pages and cron, 38 checks, re-run on Next 16.4.3). Both create
 throwaway users, so they refuse to run without `KNS_TEST_OK=1`, and `python -I tests/db_flow.py cleanup` deletes
 the test users. After this run the database was returned to its previous state (1 profile, nothing else).
 
@@ -103,20 +108,22 @@ Taken so far:
 - [x] Catalogue grown from 9 to 40 red-meat cuts using their trade names (gichiri, matumbo, ossobuco, ox tail, whole
       carcass…). Seed only; applies when the schema is run.
 - [x] Order note prompts for cut size or trim.
+- [x] Sort on the order screen (name, price low to high, price high to low).
+- [x] Landing page facts strip (order cutoff, delivery window, fee, problem window), all read from `src/lib/constants.ts`.
+- [x] `/faq` and `/delivery-and-payment` pages, written only from rules the code enforces (no invented hours or policies).
+- [x] Call and WhatsApp buttons on the landing footer, FAQ and delivery pages. They appear only when
+      `NEXT_PUBLIC_SUPPORT_PHONE` / `NEXT_PUBLIC_SUPPORT_WHATSAPP` are set (international format, e.g. 2547XXXXXXXX). **Set them in Vercel.**
 
 Deliberately not copied:
 - **Poultry, fish, deli, pet food.** Different suppliers and rules. Revisit after the red-meat pilot.
 - **Sell-by-piece items** (samosas, mshikaki). Run load is computed in kg only (`run_load_kg`).
 - **Retail price list.** Ours is a supplier comparison, so prices stay per supplier.
 
-Worth doing next, in order of value:
-1. **Areas.** Name the Nairobi areas we serve (needs a supplier/butchery `area` field or a lookup from lat/lng), show them
-   on the landing page, and later one SEO page per area. Do not publish areas until suppliers and carriers exist there.
-2. **WhatsApp and call buttons** on the landing page, login and signup. Fastest way to get help from a butcher.
-3. **Product badges and descriptions** ("Best value", "Cleaned in-house") once suppliers can set them.
-4. **Sort** options on the order screen (price, distance).
-5. **Stated trust facts** on the landing page: hours, cutoff, what happens if weight is short.
-6. **FAQ and Delivery & Payment pages** (they have both).
+Still to do:
+1. **Areas.** Name the Nairobi areas we serve (needs an `area` field on profiles or a lookup from lat/lng), show them on
+   the landing page, and later one SEO page per area. Do not publish areas until suppliers and carriers exist there.
+2. **Product badges and descriptions** ("Best value", "Cleaned in-house") once suppliers can set them.
+3. **Opening hours** if the business keeps any. Not shown because the code has no hours to quote.
 
 ## After the pilot
 

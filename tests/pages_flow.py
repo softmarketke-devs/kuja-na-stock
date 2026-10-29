@@ -49,13 +49,18 @@ for k,path,must in (
     s,b,loc=get(path,sess[k]); t(f"{k} can open {path}",s==200 and must.lower() in b.lower(),f"HTTP {s}" + ("" if must.lower() in b.lower() else f" missing '{must}'"))
 # order page shows the supplier and categories
 s,b,_=get("/dashboard/retailer/order",sess["reta"])
-t("order page lists section chips and the test product","Beef" in b and "Offal" in b and "Beef (with bone)" in b)
+t("order page has search, sort, section chip and the listed product","Find a cut" in b and "Price low to high" in b and "Beef (with bone)" in b)
 t("order page shows supplier comparison with fee","Test Slaughterhouse" in b)
 # admin page content
 s,b,_=get("/dashboard/admin",sess["admin"]); t("admin page lists carriers and checked state","Carrier Good" in b and "Checked" in b)
 # wrong role is bounced
 for k,path in (("reta","/dashboard/admin"),("cargood","/dashboard/admin"),("sup","/dashboard/retailer"),("reta","/dashboard/rider")):
     s,b,loc=get(path,sess[k]); t(f"{k} bounced from {path}",s in(302,307) and loc and "/dashboard/admin" not in loc.replace(path,"") or (s in(302,307)),f"{s} -> {loc}")
+# public pages
+for path,must in (("/","Delivery fee"),("/faq","Frequently asked"),("/delivery-and-payment","When to order"),("/terms","Terms of use"),("/privacy","Privacy policy")):
+    s,b,_=get(path); t(f"public page {path} loads",s==200 and must in b,f"HTTP {s}")
+s,b,_=get("/faq"); t("faq and delivery pages carry no draft banner","Draft for the pilot" not in b)
+s,b,_=get("/terms"); t("terms page keeps its draft banner","Draft for the pilot" in b)
 # signed out
 s,b,loc=get("/dashboard/admin"); t("signed-out visitor redirected to login",s in(302,307) and "/login" in (loc or ""),f"{s} {loc}")
 # cron

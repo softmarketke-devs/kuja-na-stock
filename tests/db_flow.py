@@ -299,7 +299,7 @@ def main():
     # ---- summary
     p = sum(1 for _, ok, _ in RESULTS if ok)
     print(f"\n{p}/{len(RESULTS)} passed")
-    json.dump(RESULTS, open(os.path.join(os.path.dirname(__file__), "results.json"), "w"))
+    pass
 
 
 main()

@@ -9,3 +9,8 @@ export const SUPPORT_EMAIL = 'softmarketke@gmail.com' // replace with a role add
 
 // Set NEXT_PUBLIC_SITE_URL in production. The fallback is the Vercel URL until a custom domain is attached.
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://kuja-na-stock.vercel.app'
+
+// Public contact numbers, set per deployment so none is hard-coded. International format
+// without + or spaces, e.g. 2547XXXXXXXX. The call and WhatsApp buttons stay hidden while empty.
+export const SUPPORT_PHONE = process.env.NEXT_PUBLIC_SUPPORT_PHONE || ''
+export const SUPPORT_WHATSAPP = process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || SUPPORT_PHONE

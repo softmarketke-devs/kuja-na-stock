@@ -47,6 +47,7 @@ export function OrderBuilder({
   const [placed, setPlaced] = useState('')
   const [category, setCategory] = useState('All')
   const [search, setSearch] = useState('')
+  const [sort, setSort] = useState<'name' | 'low' | 'high'>('name')
 
   const selectProduct = (id: string) => {
     setProductId(id)
@@ -65,10 +66,13 @@ export function OrderBuilder({
 
   const visibleProducts = useMemo(() => {
     const term = search.trim().toLowerCase()
-    return products.filter(
+    const rows = products.filter(
       (p) => (category === 'All' || p.category === category) && (!term || p.name.toLowerCase().includes(term)),
     )
-  }, [products, category, search])
+    if (sort === 'low') rows.sort((a, b) => a.from - b.from || a.name.localeCompare(b.name))
+    if (sort === 'high') rows.sort((a, b) => b.from - a.from || a.name.localeCompare(b.name))
+    return rows
+  }, [products, category, search, sort])
 
   const options = useMemo(() => {
     const rows = quotes
@@ -177,7 +181,21 @@ export function OrderBuilder({
             ))}
           </div>
           <div>
-            <div className={labelClass}>Product</div>
+            <div className="flex items-end justify-between gap-3 mb-1.5">
+              <div className={labelClass + ' !mb-0'}>Product</div>
+              <label className="flex items-center gap-1.5 text-xs text-slate-600">
+                Sort
+                <select
+                  value={sort}
+                  onChange={(e) => setSort(e.target.value as 'name' | 'low' | 'high')}
+                  className="border border-slate-300 bg-white px-2 py-1 text-xs"
+                >
+                  <option value="name">Name A–Z</option>
+                  <option value="low">Price low to high</option>
+                  <option value="high">Price high to low</option>
+                </select>
+              </label>
+            </div>
             {visibleProducts.length === 0 ? (
               <p className="text-sm text-slate-500 border border-dashed border-slate-300 p-3">
                 Nothing matches “{search}”. Try a shorter name or another section.

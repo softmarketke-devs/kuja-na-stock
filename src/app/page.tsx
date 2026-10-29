@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import { FileCheck, KeyRound, Moon, Scale, Store, Sunrise, Truck, Warehouse } from 'lucide-react'
 import { BRAND_NAME, SUPPORT_EMAIL } from '@/lib/brand'
-import { DELIVERY_WINDOW, FEE_PER_KM, MIN_DELIVERY_FEE } from '@/lib/constants'
+import { DELIVERY_WINDOW, FEE_PER_KM, ISSUE_REPORT_HOURS, MIN_DELIVERY_FEE, ORDER_CUTOFF_HOUR } from '@/lib/constants'
+import { ContactButtons } from '@/components/ContactButtons'
 import { primaryButton, secondaryButton } from '@/components/ui'
 
 const STEPS = [
@@ -75,6 +76,27 @@ export default function Home() {
           </div>
         </section>
 
+        <section className="bg-white border-b border-slate-200">
+          <dl className="max-w-5xl mx-auto px-4 py-5 grid grid-cols-2 gap-4 sm:grid-cols-4 text-sm">
+            <div>
+              <dt className="text-xs font-bold uppercase text-slate-500">Order by</dt>
+              <dd className="font-black">{ORDER_CUTOFF_HOUR}:00 daily</dd>
+            </div>
+            <div>
+              <dt className="text-xs font-bold uppercase text-slate-500">Delivered</dt>
+              <dd className="font-black">{DELIVERY_WINDOW}</dd>
+            </div>
+            <div>
+              <dt className="text-xs font-bold uppercase text-slate-500">Delivery fee</dt>
+              <dd className="font-black">KSh {FEE_PER_KM}/km, min {MIN_DELIVERY_FEE}</dd>
+            </div>
+            <div>
+              <dt className="text-xs font-bold uppercase text-slate-500">Problems</dt>
+              <dd className="font-black">Report within {ISSUE_REPORT_HOURS} h</dd>
+            </div>
+          </dl>
+        </section>
+
         <section className="max-w-5xl mx-auto px-4 py-12">
           <h2 className="text-xs font-black uppercase tracking-wider text-slate-500">How it works</h2>
           <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 mt-4">
@@ -102,8 +124,8 @@ export default function Home() {
               <FileCheck className="w-6 h-6 text-orange-600" />
               <h3 className="font-black mt-2">Licensed carriers only</h3>
               <p className="text-sm text-slate-600 mt-1">
-                Carriers must record a valid meat transport permit to take runs, and enter the certificate of transport at
-                pickup. Delivery is KSh {FEE_PER_KM} per km (minimum KSh {MIN_DELIVERY_FEE}), paid to the carrier.
+                We check each carrier’s meat transport permit and vehicle before they can take runs, and they enter the
+                certificate of transport at pickup. Delivery is KSh {FEE_PER_KM} per km (minimum KSh {MIN_DELIVERY_FEE}), paid to the carrier.
               </p>
             </div>
             <div>
@@ -118,13 +140,20 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="max-w-5xl mx-auto w-full px-4 py-6 text-xs text-slate-500 flex flex-wrap gap-x-4 gap-y-1">
-        <span>
-          © {new Date().getFullYear()} {BRAND_NAME} · Nairobi
-        </span>
-        <Link href="/terms" className="underline">Terms</Link>
-        <Link href="/privacy" className="underline">Privacy</Link>
-        <a href={`mailto:${SUPPORT_EMAIL}`} className="underline">{SUPPORT_EMAIL}</a>
+      <footer className="border-t border-slate-200 bg-white">
+        <div className="max-w-5xl mx-auto w-full px-4 py-6 space-y-3 text-xs text-slate-500">
+          <ContactButtons />
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            <span>
+              © {new Date().getFullYear()} {BRAND_NAME} · Nairobi
+            </span>
+            <Link href="/delivery-and-payment" className="underline">Delivery and payment</Link>
+            <Link href="/faq" className="underline">FAQs</Link>
+            <Link href="/terms" className="underline">Terms</Link>
+            <Link href="/privacy" className="underline">Privacy</Link>
+            <a href={`mailto:${SUPPORT_EMAIL}`} className="underline">{SUPPORT_EMAIL}</a>
+          </div>
+        </div>
       </footer>
     </div>
   )

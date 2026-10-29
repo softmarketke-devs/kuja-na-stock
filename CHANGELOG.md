@@ -16,6 +16,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `supabase/migrations/20261029_admin_verify_and_catalogue.sql`: applies the admin check, the `is_verified` rule and the larger catalogue to a database that already has v0.6.0.
 - `LAUNCH.md`: launch blockers, decisions and the renaming checklist.
 
+### Security
+- Upgraded Next.js 16.3.5 to 16.4.3 (and `eslint-config-next` to match) and ran `npm audit fix`: `npm audit` now reports 0 vulnerabilities (was 1 critical, 3 high).
+
+### Added (continued)
+- `/faq` and `/delivery-and-payment` pages, a facts strip on the landing page, and call/WhatsApp buttons (hidden until `NEXT_PUBLIC_SUPPORT_PHONE` / `_WHATSAPP` are set).
+- Sort control (name, price) on the order screen.
+- `tests/db_flow.py` and `tests/pages_flow.py`: live end-to-end checks (guarded by `KNS_TEST_OK=1`).
+
 ### Removed
 - Unused dependencies left from the old demo: five `@radix-ui/*` packages, `leaflet`, `react-leaflet`, `@types/leaflet`, `tailwind-merge`, `next-pwa`, `workbox-webpack-plugin`.
 - Default Next.js template images in `public/` and the unused OpenStreetMap image host.
