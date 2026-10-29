@@ -34,7 +34,9 @@ export async function proxy(request: NextRequest) {
     url.searchParams.set('next', pathname)
     return NextResponse.redirect(url)
   }
-  if (signedIn && (pathname === '/login' || pathname === '/signup')) {
+  // A signed-in user with no profile is sent to /login?error=profile; let them see it (and sign out).
+  const profileProblem = pathname === '/login' && request.nextUrl.searchParams.get('error') === 'profile'
+  if (signedIn && !profileProblem && (pathname === '/login' || pathname === '/signup')) {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
     url.search = ''

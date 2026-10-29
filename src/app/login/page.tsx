@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { signIn } from '@/app/actions/auth'
+import { signIn, signOut } from '@/app/actions/auth'
 import { ActionForm, SubmitButton } from '@/components/ActionForm'
 import { AuthShell } from '@/components/AuthShell'
 import { inputClass, labelClass } from '@/components/ui'
@@ -13,6 +13,16 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <p role="alert" className="mb-4 text-sm text-red-700 bg-red-50 border border-red-200 px-3 py-2">
           That confirmation link is invalid or has expired. Sign in, or sign up again to get a new link.
         </p>
+      )}
+      {error === 'profile' && (
+        <div role="alert" className="mb-4 text-sm text-red-700 bg-red-50 border border-red-200 px-3 py-2 space-y-2">
+          <p>You are signed in, but your account setup is incomplete, so we cannot open your dashboard. Please contact support.</p>
+          <form action={signOut}>
+            <button type="submit" className="font-bold underline">
+              Sign out
+            </button>
+          </form>
+        </div>
       )}
       <ActionForm action={signIn} className="space-y-4">
         <input type="hidden" name="next" value={next ?? ''} />

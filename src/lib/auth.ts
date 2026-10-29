@@ -20,7 +20,15 @@ export const getProfile = cache(async (): Promise<Profile | null> => {
 /** For pages: redirect to login, or to the user's own dashboard on a role mismatch. */
 export async function requireProfile(role?: UserRole) {
   const profile = await getProfile()
-  if (!profile) redirect('/login')
+  if (!profile) {
+    // Signed in but no profile row (e.g. an account made before the signup trigger existed).
+    // Going to plain /login would bounce straight back to /dashboard, so flag it for the login page.
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    redirect(user ? '/login?error=profile' : '/login')
+  }
   if (role && profile.role !== role) redirect(DASHBOARD_HOME[profile.role] ?? '/dashboard')
   return profile
 }

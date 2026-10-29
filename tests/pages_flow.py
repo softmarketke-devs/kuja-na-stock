@@ -61,6 +61,18 @@ for path,must in (("/","Delivery fee"),("/faq","Frequently asked"),("/delivery-a
     s,b,_=get(path); t(f"public page {path} loads",s==200 and must in b,f"HTTP {s}")
 s,b,_=get("/faq"); t("faq and delivery pages carry no draft banner","Draft for the pilot" not in b)
 s,b,_=get("/terms"); t("terms page keeps its draft banner","Draft for the pilot" in b)
+
+# regression: signed in but no profile row must not redirect-loop
+def _svc(method,path,body=None):
+    k=ENV['SUPABASE_SERVICE_ROLE_KEY']
+    req=urllib.request.Request(URL+path,method=method,headers={"apikey":k,"Authorization":"Bearer "+k,"Content-Type":"application/json"},data=json.dumps(body).encode() if body is not None else None)
+    raw=urllib.request.urlopen(req).read(); return json.loads(raw) if raw else None
+_orphan=_svc("POST","/auth/v1/admin/users",{"email":"kns-test-noprofile@example.test","password":"KnsTest-Passw0rd!","email_confirm":True})
+_svc("DELETE","/rest/v1/profiles?id=eq."+_orphan["id"])
+_s=login("kns-test-noprofile@example.test")
+st,b,loc=get("/dashboard",_s); t("no-profile user: /dashboard goes to /login?error=profile",st in(302,307) and "error=profile" in (loc or ""),f"{st} {loc}")
+st,b,loc=get("/login?error=profile",_s); t("no-profile user: /login shows the message instead of looping",st==200 and "setup is incomplete" in b,f"HTTP {st} {loc or ''}")
+st,b,loc=get("/login",_s); t("signed-in user on plain /login still goes to /dashboard",st in(302,307) and (loc or "").endswith("/dashboard"),f"{st} {loc}")
 # signed out
 s,b,loc=get("/dashboard/admin"); t("signed-out visitor redirected to login",s in(302,307) and "/login" in (loc or ""),f"{s} {loc}")
 # cron
