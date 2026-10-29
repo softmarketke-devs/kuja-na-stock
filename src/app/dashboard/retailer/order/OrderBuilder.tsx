@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { clsx } from 'clsx'
-import { ShieldCheck, Trash2 } from 'lucide-react'
+import { Search, ShieldCheck, Trash2 } from 'lucide-react'
 import { ksh, qty as fmtQty } from '@/lib/format'
 import { placeOrder } from '@/app/actions/retailer'
 import { ActionForm, SubmitButton } from '@/components/ActionForm'
@@ -45,6 +45,8 @@ export function OrderBuilder({
   const [basket, setBasket] = useState<Basket>({})
   const [addError, setAddError] = useState('')
   const [placed, setPlaced] = useState('')
+  const [category, setCategory] = useState('All')
+  const [search, setSearch] = useState('')
 
   const selectProduct = (id: string) => {
     setProductId(id)
@@ -54,6 +56,19 @@ export function OrderBuilder({
 
   const q = Number(quantity)
   const product = products.find((p) => p.id === productId)
+
+  const categories = useMemo(() => {
+    const counts = new Map<string, number>()
+    for (const p of products) counts.set(p.category, (counts.get(p.category) ?? 0) + 1)
+    return [['All', products.length] as const, ...[...counts.entries()].sort((a, b) => a[0].localeCompare(b[0]))]
+  }, [products])
+
+  const visibleProducts = useMemo(() => {
+    const term = search.trim().toLowerCase()
+    return products.filter(
+      (p) => (category === 'All' || p.category === category) && (!term || p.name.toLowerCase().includes(term)),
+    )
+  }, [products, category, search])
 
   const options = useMemo(() => {
     const rows = quotes
@@ -129,30 +144,81 @@ export function OrderBuilder({
         )}
 
         <Card className="p-4 space-y-3">
-          <div className="grid grid-cols-[1fr_120px] gap-2">
-            <div>
-              <label className={labelClass} htmlFor="product">Product</label>
-              <select id="product" value={productId} onChange={(e) => selectProduct(e.target.value)} className={inputClass}>
-                {products.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} (from {ksh(p.from)}/{p.unit})
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className={labelClass} htmlFor="qty">Qty ({product?.unit})</label>
+          <div>
+            <label className={labelClass} htmlFor="product-search">Find a cut</label>
+            <div className="relative">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" aria-hidden />
               <input
-                id="qty"
-                type="number"
-                inputMode="decimal"
-                min={0}
-                step="any"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-                className={inputClass}
+                id="product-search"
+                type="search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="e.g. matumbo, mince, goat ribs"
+                className={inputClass + ' pl-9'}
               />
             </div>
+          </div>
+          <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filter by section">
+            {categories.map(([name, count]) => (
+              <button
+                key={name}
+                type="button"
+                aria-pressed={category === name}
+                onClick={() => setCategory(name)}
+                className={clsx(
+                  'px-3 min-h-9 text-xs font-bold border',
+                  category === name
+                    ? 'bg-orange-600 border-orange-600 text-white'
+                    : 'bg-white border-slate-300 text-slate-700 hover:border-orange-400',
+                )}
+              >
+                {name} <span className="opacity-70">{count}</span>
+              </button>
+            ))}
+          </div>
+          <div>
+            <div className={labelClass}>Product</div>
+            {visibleProducts.length === 0 ? (
+              <p className="text-sm text-slate-500 border border-dashed border-slate-300 p-3">
+                Nothing matches “{search}”. Try a shorter name or another section.
+              </p>
+            ) : (
+              <ul className="max-h-56 overflow-y-auto border border-slate-200 divide-y divide-slate-100">
+                {visibleProducts.map((p) => (
+                  <li key={p.id}>
+                    <button
+                      type="button"
+                      aria-pressed={p.id === productId}
+                      onClick={() => selectProduct(p.id)}
+                      className={clsx(
+                        'w-full flex items-center justify-between gap-3 px-3 min-h-11 text-left text-sm',
+                        p.id === productId ? 'bg-orange-50 font-bold text-orange-800' : 'hover:bg-slate-50',
+                      )}
+                    >
+                      <span>{p.name}</span>
+                      <span className="text-xs text-slate-500 shrink-0">
+                        from {ksh(p.from)}/{p.unit}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <div className="max-w-40">
+            <label className={labelClass} htmlFor="qty">
+              Qty ({product?.unit}) of {product?.name}
+            </label>
+            <input
+              id="qty"
+              type="number"
+              inputMode="decimal"
+              min={0}
+              step="any"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              className={inputClass}
+            />
           </div>
           {addError && <p className="text-sm text-red-700">{addError}</p>}
         </Card>
@@ -251,7 +317,7 @@ export function OrderBuilder({
                     name="items"
                     value={JSON.stringify(lines.map((l) => ({ listing_id: l.quote.listing_id, quantity: l.quantity })))}
                   />
-                  <textarea name="notes" rows={2} placeholder="Note for the supplier (optional)" className={inputClass} />
+                  <textarea name="notes" rows={2} placeholder="Note for the supplier, e.g. cut size or trim (optional)" className={inputClass} />
                   <SubmitButton className={primaryButton + ' w-full'} pendingText="Placing order…">
                     Place order
                   </SubmitButton>

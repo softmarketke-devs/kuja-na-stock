@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added
+- Admin screen `/dashboard/admin` and `admin_set_carrier_verified()` to check carriers' permits; the carrier is notified by SMS.
+- Draft `/terms` and `/privacy` pages, linked from the landing page footer and the signup form.
+- `src/lib/brand.ts`: one place for the product name, site URL and support email.
+- `supabase/migrations/20261029_admin_verify_and_catalogue.sql`: applies the admin check, the `is_verified` rule and the larger catalogue to a database that already has v0.6.0.
+- `LAUNCH.md`: launch blockers, decisions and the renaming checklist.
+
+### Removed
+- Unused dependencies left from the old demo: five `@radix-ui/*` packages, `leaflet`, `react-leaflet`, `@types/leaflet`, `tailwind-merge`, `next-pwa`, `workbox-webpack-plugin`.
+- Default Next.js template images in `public/` and the unused OpenStreetMap image host.
+- Untracked local tooling (`.mcp.json`, `supabase/.temp/`) now gitignored.
+
+### Changed
+- Carriers must be checked by an admin before they can be offered or accept a run (`carrier_block_reason`). Existing carriers need checking after the schema is applied.
+- Metadata base URL comes from `NEXT_PUBLIC_SITE_URL`.
+
+---
+
 ## [0.6.0] - 2026-10-03
 
 Changed focus from fresh-produce retailers to butcheries. Kuja Na Stock is a B2B meat logistics platform: butcheries buy, slaughterhouses and wholesalers sell, licensed meat carriers deliver.

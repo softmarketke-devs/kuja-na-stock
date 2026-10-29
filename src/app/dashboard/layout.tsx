@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { signOut } from '@/app/actions/auth'
 import { LiveRefresh } from '@/components/LiveRefresh'
 import { DashboardNav } from '@/components/DashboardNav'
+import { BRAND_NAME } from '@/lib/brand'
 import type { UserRole } from '@/types'
 
 const LIVE_TABLES: Record<UserRole, string[]> = {
@@ -41,7 +42,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <img src="/icons/logo-square.png" alt="" className="w-8 h-8 border border-orange-200 shrink-0" />
             <div className="min-w-0">
               <div className="text-sm font-black uppercase tracking-tight truncate">
-                {profile.business_name || profile.full_name || 'Kuja Na Stock'}
+                {profile.business_name || profile.full_name || BRAND_NAME}
               </div>
               <div className="text-[13px] text-orange-700 font-bold uppercase">{ROLE_LABEL[profile.role]}</div>
             </div>

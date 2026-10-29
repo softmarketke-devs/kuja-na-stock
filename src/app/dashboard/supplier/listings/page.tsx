@@ -69,10 +69,17 @@ export default async function ListingsPage() {
                   <option value="" disabled>
                     Choose…
                   </option>
-                  {available.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name} (per {p.unit})
-                    </option>
+                  {[...new Set(available.map((p) => p.category))].sort().map((cat) => (
+                    <optgroup key={cat} label={cat}>
+                      {available
+                        .filter((p) => p.category === cat)
+                        .sort((a, b) => a.name.localeCompare(b.name))
+                        .map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.name} (per {p.unit})
+                          </option>
+                        ))}
+                    </optgroup>
                   ))}
                 </select>
               </div>

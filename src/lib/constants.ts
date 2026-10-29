@@ -13,5 +13,5 @@ export const DASHBOARD_HOME: Record<string, string> = {
   retailer: '/dashboard/retailer',
   supplier: '/dashboard/supplier',
   rider: '/dashboard/rider',
-  admin: '/dashboard/settings',
+  admin: '/dashboard/admin',
 }

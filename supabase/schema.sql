@@ -778,6 +778,9 @@ begin
   if nullif(btrim(p_carrier.meat_permit_no), '') is null or p_carrier.meat_permit_expiry is null then
     return 'No meat transport permit is recorded on your account';
   end if;
+  if not p_carrier.is_verified then
+    return 'Your permit and vehicle have not been checked yet. An admin must check them before you can take runs';
+  end if;
   if p_carrier.meat_permit_expiry < p_run_date then
     return 'Your meat transport permit expires before ' || to_char(p_run_date, 'Dy DD Mon') || '. Renew it and update your account page';
   end if;
@@ -1502,6 +1505,40 @@ grant update (is_read) on public.notifications to authenticated;
 -- ---------------------------------------------------------------------------
 -- Function privileges
 -- ---------------------------------------------------------------------------
+-- Admin: mark a carrier's permit and vehicle as checked (or not). Only checked
+-- carriers can be offered or accept runs (carrier_block_reason).
+create or replace function public.admin_set_carrier_verified(p_carrier_id uuid, p_verified boolean)
+returns void language plpgsql security definer
+set search_path = public
+as $$
+declare
+  v_carrier profiles;
+begin
+  perform require_role('admin');
+  select * into v_carrier from profiles where id = p_carrier_id and role = 'rider' for update;
+  if not found then
+    raise exception 'Carrier not found';
+  end if;
+  if p_verified and (nullif(btrim(v_carrier.meat_permit_no), '') is null
+      or v_carrier.meat_permit_expiry is null
+      or nullif(btrim(v_carrier.vehicle_reg), '') is null) then
+    raise exception 'This carrier has not recorded a permit and vehicle yet';
+  end if;
+  if v_carrier.is_verified = p_verified then
+    return;
+  end if;
+
+  update profiles set is_verified = p_verified where id = p_carrier_id;
+  if p_verified then
+    perform notify(p_carrier_id, 'carrier_verified', 'Permit checked',
+      'Your permit and vehicle have been checked. You can now take runs.', '{}', true);
+  else
+    perform notify(p_carrier_id, 'carrier_unverified', 'Permit needs attention',
+      'Your permit or vehicle could not be confirmed. Check the details on your account page or contact us.', '{}', true);
+  end if;
+end
+$$;
+
 -- Internal: never callable through the API.
 revoke execute on function
   public.notify(uuid, text, text, text, jsonb, boolean),
@@ -1544,7 +1581,8 @@ revoke execute on function
   public.release_run(uuid),
   public.mark_run_picked_up(uuid, text),
   public.confirm_delivery(uuid, text, public.payment_method, numeric, text),
-  public.fail_delivery(uuid, text)
+  public.fail_delivery(uuid, text),
+  public.admin_set_carrier_verified(uuid, boolean)
 from public, anon;
 grant execute on function
   public.quote_suppliers(),
@@ -1561,7 +1599,8 @@ grant execute on function
   public.release_run(uuid),
   public.mark_run_picked_up(uuid, text),
   public.confirm_delivery(uuid, text, public.payment_method, numeric, text),
-  public.fail_delivery(uuid, text)
+  public.fail_delivery(uuid, text),
+  public.admin_set_carrier_verified(uuid, boolean)
 to authenticated;
 
 -- ---------------------------------------------------------------------------
@@ -1589,5 +1628,36 @@ insert into public.products (name, category, unit) values
   ('Mutton', 'Goat & mutton', 'kg'),
   ('Matumbo (beef tripe)', 'Offal', 'kg'),
   ('Beef liver', 'Offal', 'kg'),
-  ('Goat offal (mixed)', 'Offal', 'kg')
+  ('Goat offal (mixed)', 'Offal', 'kg'),
+  -- Cuts and trade names benchmarked against a Nairobi retail butchery's counter.
+  ('Sirloin steak', 'Beef', 'kg'),
+  ('T-bone steak', 'Beef', 'kg'),
+  ('Rib eye', 'Beef', 'kg'),
+  ('Rump steak', 'Beef', 'kg'),
+  ('Topside steak', 'Beef', 'kg'),
+  ('Silverside steak', 'Beef', 'kg'),
+  ('Beef short ribs', 'Beef', 'kg'),
+  ('Ossobuco (beef shank)', 'Beef', 'kg'),
+  ('Beef blade (gichiri)', 'Beef', 'kg'),
+  ('Beef cubes (stewing)', 'Beef', 'kg'),
+  ('Beef mince', 'Beef', 'kg'),
+  ('Lean steak mince', 'Beef', 'kg'),
+  ('Beef fat', 'Beef', 'kg'),
+  ('Ox tail', 'Offal', 'kg'),
+  ('Beef kidney', 'Offal', 'kg'),
+  ('Ox tongue', 'Offal', 'kg'),
+  ('Beef heart', 'Offal', 'kg'),
+  ('Beef trotters', 'Offal', 'kg'),
+  ('Goat matumbo', 'Offal', 'kg'),
+  ('Goat liver', 'Offal', 'kg'),
+  ('Goat head (cleaned)', 'Offal', 'kg'),
+  ('Goat trotters', 'Offal', 'kg'),
+  ('Whole goat carcass', 'Goat & mutton', 'kg'),
+  ('Whole lamb carcass', 'Goat & mutton', 'kg'),
+  ('Goat ribs', 'Goat & mutton', 'kg'),
+  ('Goat leg', 'Goat & mutton', 'kg'),
+  ('Goat shoulder', 'Goat & mutton', 'kg'),
+  ('Lamb leg', 'Goat & mutton', 'kg'),
+  ('Lamb loin chops', 'Goat & mutton', 'kg'),
+  ('Mutton mince', 'Goat & mutton', 'kg')
 on conflict (name) do nothing;

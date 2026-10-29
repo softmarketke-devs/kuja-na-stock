@@ -52,7 +52,7 @@ Engineering progression, architectural decisions, and development roadmap for **
   - `public/logo.jpg` (OpenGraph social card).
 - [x] Implemented service worker offline asset caching (`public/sw.js`).
 - [x] Configured Next.js dynamic web manifest (`src/app/manifest.ts`) and static manifest fallback (`public/manifest.json`).
-- [x] Successfully deployed to Vercel production edge network (`https://supplier-hub-rouge.vercel.app`).
+- [x] Successfully deployed to Vercel production edge network (`https://supplier-hub-rouge.vercel.app`; the current production URL is `https://kuja-na-stock.vercel.app`).
 
 ---
 

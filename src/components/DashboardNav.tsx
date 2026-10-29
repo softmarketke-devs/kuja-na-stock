@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { clsx } from 'clsx'
-import { ClipboardList, History, Package, ShoppingCart, Store, Truck, UserRound, type LucideIcon } from 'lucide-react'
+import { ClipboardList, History, Package, ShieldCheck, ShoppingCart, Store, Truck, UserRound, type LucideIcon } from 'lucide-react'
 import type { UserRole } from '@/types'
 
 type NavItem = { href: string; label: string; icon: LucideIcon }
@@ -23,7 +23,7 @@ const NAV: Record<UserRole, NavItem[]> = {
     SETTINGS,
   ],
   rider: [{ href: '/dashboard/rider', label: 'My runs', icon: Truck }, SETTINGS],
-  admin: [SETTINGS],
+  admin: [{ href: '/dashboard/admin', label: 'Permits', icon: ShieldCheck }, SETTINGS],
 }
 
 // Longest matching prefix wins, so /dashboard/retailer/order doesn't also light up /dashboard/retailer.

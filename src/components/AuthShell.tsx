@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { BRAND_NAME } from '@/lib/brand'
 
 export function AuthShell({
   title,
@@ -15,7 +16,7 @@ export function AuthShell({
         <Link href="/" className="flex items-center gap-2.5 justify-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/icons/logo-square.png" alt="" className="w-10 h-10 border border-orange-200" />
-          <span className="text-xl font-black uppercase tracking-tight">Kuja Na Stock</span>
+          <span className="text-xl font-black uppercase tracking-tight">{BRAND_NAME}</span>
         </Link>
         <p className="text-center text-sm text-slate-500 mt-2">{subtitle}</p>
         <div className="bg-white border border-slate-200 shadow-xs p-6 mt-6">

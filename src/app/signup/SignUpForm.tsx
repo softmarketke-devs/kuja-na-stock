@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useState } from 'react'
 import { clsx } from 'clsx'
 import { Store, Truck, Warehouse } from 'lucide-react'
@@ -120,6 +121,11 @@ export function SignUpForm() {
         <label className={labelClass} htmlFor="password">Password (8+ characters)</label>
         <input id="password" name="password" type="password" required minLength={8} autoComplete="new-password" className={inputClass} />
       </div>
+      <p className="text-xs text-slate-500">
+        By creating an account you agree to the{' '}
+        <Link href="/terms" className="underline" target="_blank">Terms</Link> and the{' '}
+        <Link href="/privacy" className="underline" target="_blank">Privacy Policy</Link>.
+      </p>
       <SubmitButton pendingText="Creating account…">Create account</SubmitButton>
     </ActionForm>
   )

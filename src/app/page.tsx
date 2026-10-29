@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { FileCheck, KeyRound, Moon, Scale, Store, Sunrise, Truck, Warehouse } from 'lucide-react'
+import { BRAND_NAME, SUPPORT_EMAIL } from '@/lib/brand'
 import { DELIVERY_WINDOW, FEE_PER_KM, MIN_DELIVERY_FEE } from '@/lib/constants'
 import { primaryButton, secondaryButton } from '@/components/ui'
 
@@ -34,7 +35,7 @@ export default function Home() {
           <Link href="/" className="flex items-center gap-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/icons/logo-square.png" alt="" className="w-8 h-8 border border-orange-200" />
-            <span className="font-black uppercase tracking-tight">Kuja Na Stock</span>
+            <span className="font-black uppercase tracking-tight">{BRAND_NAME}</span>
           </Link>
           <div className="flex gap-2">
             <Link href="/login" className={secondaryButton + ' !py-2'}>
@@ -117,8 +118,13 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="max-w-5xl mx-auto w-full px-4 py-6 text-xs text-slate-500">
-        © {new Date().getFullYear()} Kuja Na Stock · Nairobi
+      <footer className="max-w-5xl mx-auto w-full px-4 py-6 text-xs text-slate-500 flex flex-wrap gap-x-4 gap-y-1">
+        <span>
+          © {new Date().getFullYear()} {BRAND_NAME} · Nairobi
+        </span>
+        <Link href="/terms" className="underline">Terms</Link>
+        <Link href="/privacy" className="underline">Privacy</Link>
+        <a href={`mailto:${SUPPORT_EMAIL}`} className="underline">{SUPPORT_EMAIL}</a>
       </footer>
     </div>
   )

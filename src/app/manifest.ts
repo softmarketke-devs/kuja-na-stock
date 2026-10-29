@@ -1,9 +1,10 @@
 import type { MetadataRoute } from 'next'
+import { BRAND_NAME, BRAND_SHORT_NAME } from '@/lib/brand'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Kuja Na Stock PWA',
-    short_name: 'KujaNaStock',
+    name: BRAND_NAME,
+    short_name: BRAND_SHORT_NAME,
     description: 'Order meat tonight, delivered to your butchery before 7 AM.',
     start_url: '/dashboard',
     display: 'standalone',
