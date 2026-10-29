@@ -110,7 +110,10 @@ def cleanup():
         if (u.get("email") or "").startswith("kns-test-"):
             svc("DELETE", "/auth/v1/admin/users/" + u["id"])
             n += 1
-    print(f"cleanup: deleted {n} test users")
+    # Queued SMS survive their user (user_id is set null), so remove them by the test phone numbers,
+    # otherwise the SMS cron would try to text those numbers once SMS credentials exist.
+    svc("DELETE", "/rest/v1/sms_outbox?to_phone=like.%2B25471200000*")
+    print(f"cleanup: deleted {n} test users and their queued SMS")
 
 
 def main():
