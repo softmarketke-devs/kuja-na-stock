@@ -178,10 +178,12 @@ export interface SupplierQuote {
   supplier_name: string
   supplier_type: SupplierType
   supplier_verified: boolean
+  supplier_phone: string | null
   product_id: string
   product_name: string
   category: string
   unit: string
+  search_keywords: string[] | null
   price_per_unit: number
   available_qty: number
   min_order_qty: number

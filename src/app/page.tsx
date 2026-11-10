@@ -50,15 +50,19 @@ export default function Home() {
       </header>
 
       <main className="flex-1">
-        <section className="tactical-grid border-b border-slate-200">
-          <div className="max-w-5xl mx-auto px-4 py-14 sm:py-20">
-            <p className="text-xs font-black uppercase tracking-wider text-orange-700 flex items-center gap-2">
+        <section
+          className="relative isolate border-b border-slate-200 bg-slate-950 bg-cover bg-[position:50%_85%] text-white"
+          style={{ backgroundImage: "url('/hero-beef-cuts.jpg')" }}
+        >
+          <div className="absolute inset-0 -z-10 bg-gradient-to-r from-black/85 via-black/60 to-black/30" aria-hidden />
+          <div className="max-w-5xl mx-auto px-4 py-20 sm:py-32">
+            <p className="text-xs font-black uppercase tracking-wider text-orange-400 flex items-center gap-2">
               <Sunrise className="w-4 h-4" /> For Nairobi butcheries
             </p>
             <h1 className="text-4xl sm:text-5xl font-black tracking-tight mt-3 max-w-2xl">
               Order tonight. Stocked by 7 AM.
             </h1>
-            <p className="text-lg text-slate-700 mt-4 max-w-xl">
+            <p className="text-lg text-slate-200 mt-4 max-w-xl">
               Order meat in the evening from slaughterhouses and wholesalers near you, and a licensed meat carrier brings it
               to your butchery {DELIVERY_WINDOW}, before you open.
             </p>

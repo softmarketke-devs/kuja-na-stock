@@ -22,8 +22,35 @@ export default async function OrderPage({
 
   const nextDate = nextDeliveryDate()
 
+  const offers = ((quotes ?? []) as SupplierQuote[]).filter((q) => q.in_range)
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    itemListElement: offers.map((q, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      item: {
+        '@type': 'Product',
+        name: q.product_name,
+        category: q.category,
+        offers: {
+          '@type': 'Offer',
+          price: q.price_per_unit,
+          priceCurrency: 'KES',
+          availability: q.available_qty > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+          unitText: q.unit,
+          seller: { '@type': 'Organization', name: q.supplier_name },
+        },
+      },
+    })),
+  }
+
   return (
     <div className="space-y-4">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+      />
       <div>
         <h1 className="text-xl font-black uppercase tracking-tight">Order stock</h1>
         <p className="text-sm text-slate-600">

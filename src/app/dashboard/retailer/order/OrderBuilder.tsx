@@ -2,15 +2,26 @@
 
 import { useMemo, useState } from 'react'
 import { clsx } from 'clsx'
-import { Search, ShieldCheck, Trash2 } from 'lucide-react'
+import { MessageCircle, Phone, Search, ShieldCheck, ShoppingBasket, Trash2 } from 'lucide-react'
 import { ksh, qty as fmtQty } from '@/lib/format'
 import { placeOrder } from '@/app/actions/retailer'
 import { ActionForm, SubmitButton } from '@/components/ActionForm'
+import { BRAND_NAME, SUPPORT_PHONE, SUPPORT_WHATSAPP } from '@/lib/brand'
 import { Badge, Card, Empty, SectionTitle, inputClass, labelClass, primaryButton, secondaryButton } from '@/components/ui'
 import type { RetailerInventory, SupplierQuote } from '@/types'
 
 type BasketLine = { quote: SupplierQuote; quantity: number }
 type Basket = Record<string, BasketLine[]> // supplier_id → lines
+
+/** Pre-filled WhatsApp message to the supplier, built from the order just sent. */
+function supplierWhatsAppLink(lines: BasketLine[]) {
+  const first = lines[0].quote
+  const digits = (first.supplier_phone ?? '').replace(/\D/g, '')
+  if (!digits) return ''
+  const items = lines.map((l) => `${fmtQty(l.quantity)} ${l.quote.unit} ${l.quote.product_name}`).join(', ')
+  const text = `Hello ${first.supplier_name}, I just placed an order on ${BRAND_NAME}: ${items}. Please confirm. Thank you.`
+  return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`
+}
 
 export function OrderBuilder({
   quotes,
@@ -24,12 +35,19 @@ export function OrderBuilder({
   initialQty?: number
 }) {
   const products = useMemo(() => {
-    const byId = new Map<string, { id: string; name: string; unit: string; category: string; from: number }>()
+    const byId = new Map<string, { id: string; name: string; unit: string; category: string; from: number; soldOut: boolean; keywords: string }>()
     for (const q of quotes) {
       if (!q.in_range) continue
+      const inStock = q.available_qty > 0
       const cur = byId.get(q.product_id)
-      if (!cur || q.price_per_unit < cur.from) {
-        byId.set(q.product_id, { id: q.product_id, name: q.product_name, unit: q.unit, category: q.category, from: q.price_per_unit })
+      if (!cur) {
+        byId.set(q.product_id, {
+          id: q.product_id, name: q.product_name, unit: q.unit, category: q.category,
+          from: q.price_per_unit, soldOut: !inStock, keywords: (q.search_keywords ?? []).join(' ').toLowerCase(),
+        })
+      } else if (inStock && (cur.soldOut || q.price_per_unit < cur.from)) {
+        cur.from = q.price_per_unit
+        cur.soldOut = false
       }
     }
     return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name))
@@ -44,7 +62,7 @@ export function OrderBuilder({
   const [quantity, setQuantity] = useState(String(initialQty ?? reorderQty(productId) ?? ''))
   const [basket, setBasket] = useState<Basket>({})
   const [addError, setAddError] = useState('')
-  const [placed, setPlaced] = useState('')
+  const [placed, setPlaced] = useState<{ message: string; wa: string } | null>(null)
   const [category, setCategory] = useState('All')
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<'name' | 'low' | 'high'>('name')
@@ -67,7 +85,13 @@ export function OrderBuilder({
   const visibleProducts = useMemo(() => {
     const term = search.trim().toLowerCase()
     const rows = products.filter(
-      (p) => (category === 'All' || p.category === category) && (!term || p.name.toLowerCase().includes(term)),
+      (p) => {
+        if (category !== 'All' && p.category !== category) return false
+        if (!term) return true
+        // Every word typed must appear in the name, section or synonym keywords.
+        const hay = `${p.name} ${p.category} ${p.keywords}`.toLowerCase()
+        return term.split(/\s+/).every((w) => hay.includes(w))
+      },
     )
     if (sort === 'low') rows.sort((a, b) => a.from - b.from || a.name.localeCompare(b.name))
     if (sort === 'high') rows.sort((a, b) => b.from - a.from || a.name.localeCompare(b.name))
@@ -93,7 +117,8 @@ export function OrderBuilder({
 
   const addToBasket = (quote: SupplierQuote) => {
     setAddError('')
-    if (!(q > 0)) return setAddError('Enter how much you need')
+    if (quote.available_qty <= 0) return setAddError(`${quote.supplier_name} is out of stock`)
+    const q = Number(quantity) > 0 ? Number(quantity) : quote.min_order_qty
     if (q < quote.min_order_qty) return setAddError(`${quote.supplier_name} sells at least ${fmtQty(quote.min_order_qty)} ${quote.unit}`)
     if (q > quote.available_qty) return setAddError(`${quote.supplier_name} only has ${fmtQty(quote.available_qty)} ${quote.unit}`)
     setBasket((prev) => {
@@ -129,7 +154,7 @@ export function OrderBuilder({
   }
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[1fr_380px] items-start">
+    <div className="grid gap-5 lg:grid-cols-[1fr_380px] items-start pb-20 lg:pb-0">
       <div className="space-y-4">
         {lowStock.length > 0 && (
           <div className="flex flex-wrap gap-2 items-center">
@@ -215,7 +240,7 @@ export function OrderBuilder({
                     >
                       <span>{p.name}</span>
                       <span className="text-xs text-slate-500 shrink-0">
-                        from {ksh(p.from)}/{p.unit}
+                        {p.soldOut ? 'Out of stock' : `from ${ksh(p.from)}/${p.unit}`}
                       </span>
                     </button>
                   </li>
@@ -243,50 +268,73 @@ export function OrderBuilder({
 
         <div className="space-y-2">
           <SectionTitle>Compare suppliers</SectionTitle>
-          {options.map((o) => (
-            <Card key={o.listing_id} className={clsx('p-3', !o.in_range && 'opacity-60', o.listing_id === bestTotal && 'border-orange-400')}>
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="font-black">{o.supplier_name}</span>
-                    {o.supplier_verified && <ShieldCheck className="w-4 h-4 text-emerald-600" aria-label="Verified" />}
-                    <Badge color={o.supplier_type === 'slaughterhouse' ? 'green' : 'slate'}>{o.supplier_type === 'slaughterhouse' ? 'Slaughterhouse' : 'Wholesaler'}</Badge>
-                    {o.listing_id === bestTotal && <Badge color="orange">Best total</Badge>}
-                    {o.listing_id === cheapestUnit && o.listing_id !== bestTotal && <Badge color="blue">Lowest price</Badge>}
-                    {o.listing_id === nearest && <Badge>Nearest</Badge>}
+          {options.map((o) => {
+            const soldOut = o.available_qty <= 0
+            const addQty = q > 0 ? q : o.min_order_qty
+            return (
+              <Card
+                key={o.listing_id}
+                className={clsx('p-3', (!o.in_range || soldOut) && 'opacity-60', !soldOut && o.listing_id === bestTotal && 'border-orange-400')}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-[11px] font-black uppercase tracking-wider text-orange-700">{o.category}</div>
+                    <div className="font-black leading-tight">{o.product_name}</div>
+                    <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                      <span className="text-sm font-bold text-slate-800">{o.supplier_name}</span>
+                      {o.supplier_verified && <ShieldCheck className="w-4 h-4 text-emerald-600" aria-label="Verified" />}
+                      <Badge color={o.supplier_type === 'slaughterhouse' ? 'green' : 'slate'}>{o.supplier_type === 'slaughterhouse' ? 'Slaughterhouse' : 'Wholesaler'}</Badge>
+                      {soldOut && <Badge color="red">Out of stock</Badge>}
+                      {!soldOut && o.listing_id === bestTotal && <Badge color="orange">Best total</Badge>}
+                      {!soldOut && o.listing_id === cheapestUnit && o.listing_id !== bestTotal && <Badge color="blue">Lowest price</Badge>}
+                      {!soldOut && o.listing_id === nearest && <Badge>Nearest</Badge>}
+                    </div>
+                    <div className="text-sm text-slate-600 mt-1">
+                      {o.distance_km} km · {o.feeCovered ? 'delivery already in basket' : `delivery ${ksh(o.delivery_fee)}`}
+                    </div>
+                    <div className="text-xs text-slate-500">
+                      {soldOut ? 'Not available tonight' : `${fmtQty(o.available_qty)} ${o.unit} available`} · min {fmtQty(o.min_order_qty)} {o.unit}
+                    </div>
                   </div>
-                  <div className="text-sm text-slate-600 mt-1">
-                    {ksh(o.price_per_unit)}/{o.unit} · {o.distance_km} km ·{' '}
-                    {o.feeCovered ? 'delivery already in basket' : `delivery ${ksh(o.delivery_fee)}`}
-                  </div>
-                  <div className="text-xs text-slate-500">
-                    {fmtQty(o.available_qty)} {o.unit} available · min {fmtQty(o.min_order_qty)}
+                  <div className="text-right shrink-0">
+                    <div className="text-lg font-black leading-none">
+                      {ksh(o.price_per_unit)}
+                      <small className="block text-[11px] font-bold text-slate-500">per {o.unit}</small>
+                    </div>
+                    {o.in_range ? (
+                      <>
+                        {!soldOut && <div className="text-xs text-slate-500 mt-1">Total {ksh(o.landed)}</div>}
+                        <button
+                          type="button"
+                          disabled={soldOut}
+                          onClick={() => addToBasket(o)}
+                          className={primaryButton + ' !py-1.5 !px-3 !text-xs mt-1'}
+                        >
+                          {soldOut ? 'Unavailable' : `Add ${fmtQty(addQty)} ${o.unit}`}
+                        </button>
+                      </>
+                    ) : (
+                      <span className="block text-xs text-slate-500 mt-1">Doesn’t deliver this far</span>
+                    )}
                   </div>
                 </div>
-                <div className="text-right shrink-0">
-                  {o.in_range ? (
-                    <>
-                      <div className="text-lg font-black">{ksh(o.landed)}</div>
-                      <button type="button" onClick={() => addToBasket(o)} className={primaryButton + ' !py-1.5 !px-3 !text-xs mt-1'}>
-                        Add
-                      </button>
-                    </>
-                  ) : (
-                    <span className="text-xs text-slate-500">Doesn’t deliver this far</span>
-                  )}
-                </div>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            )
+          })}
         </div>
       </div>
 
-      <div className="space-y-3 lg:sticky lg:top-28">
+      <div id="basket" className="space-y-3 lg:sticky lg:top-28 scroll-mt-4">
         <SectionTitle>Basket</SectionTitle>
         {placed && (
-          <p role="status" className="text-sm text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-2">
-            {placed}
-          </p>
+          <div role="status" className="text-sm text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-2 space-y-2">
+            <p>{placed.message}</p>
+            {placed.wa && (
+              <a href={placed.wa} target="_blank" rel="noopener" className="inline-flex items-center gap-1.5 font-bold underline">
+                <MessageCircle className="w-4 h-4" /> Message the supplier on WhatsApp
+              </a>
+            )}
+          </div>
         )}
         {Object.keys(basket).length === 0 ? (
           <Empty>Add items to order. Buying several items from one supplier means one delivery fee.</Empty>
@@ -326,8 +374,11 @@ export function OrderBuilder({
                   </li>
                 </ul>
                 <ActionForm action={placeOrder} onSuccess={() => {
+                    setPlaced({
+                      message: `Order sent to ${first.supplier_name}. We will SMS you when they confirm.`,
+                      wa: supplierWhatsAppLink(lines),
+                    })
                     clearSupplier(supplierId)
-                    setPlaced(`Order sent to ${first.supplier_name}. We will SMS you when they confirm.`)
                   }} className="space-y-2">
                   <input type="hidden" name="supplier_id" value={supplierId} />
                   <input
@@ -348,6 +399,29 @@ export function OrderBuilder({
           })
         )}
       </div>
+
+      <nav
+        aria-label="Quick actions"
+        className="lg:hidden fixed inset-x-0 bottom-0 z-30 flex bg-white border-t border-slate-300 pb-[env(safe-area-inset-bottom)]"
+      >
+        {SUPPORT_WHATSAPP && (
+          <a
+            href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(`Hello ${BRAND_NAME}, I need help with an order.`)}`}
+            rel="noopener"
+            className="flex-1 flex flex-col items-center justify-center gap-0.5 min-h-14 text-xs font-bold text-emerald-700"
+          >
+            <MessageCircle className="w-5 h-5" /> WhatsApp
+          </a>
+        )}
+        {SUPPORT_PHONE && (
+          <a href={`tel:+${SUPPORT_PHONE}`} className="flex-1 flex flex-col items-center justify-center gap-0.5 min-h-14 text-xs font-bold text-slate-700">
+            <Phone className="w-5 h-5" /> Call
+          </a>
+        )}
+        <a href="#basket" className="flex-1 flex flex-col items-center justify-center gap-0.5 min-h-14 text-xs font-bold bg-orange-600 text-white">
+          <ShoppingBasket className="w-5 h-5" /> Basket{Object.keys(basket).length > 0 && ` (${Object.values(basket).reduce((n, l) => n + l.length, 0)})`}
+        </a>
+      </nav>
     </div>
   )
 }

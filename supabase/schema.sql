@@ -90,6 +90,7 @@ create table public.products (
   name text not null unique,
   category text not null,
   unit text not null default 'kg',
+  search_keywords text[] not null default '{}',
   created_at timestamptz not null default now()
 );
 
@@ -498,10 +499,12 @@ returns table (
   supplier_name text,
   supplier_type public.supplier_type,
   supplier_verified boolean,
+  supplier_phone text,
   product_id uuid,
   product_name text,
   category text,
   unit text,
+  search_keywords text[],
   price_per_unit numeric,
   available_qty numeric,
   min_order_qty numeric,
@@ -512,14 +515,14 @@ returns table (
 set search_path = public, extensions
 as $$
   select
-    l.id, s.id, coalesce(s.business_name, s.full_name), s.supplier_type, s.is_verified,
-    p.id, p.name, p.category, p.unit,
+    l.id, s.id, coalesce(s.business_name, s.full_name), s.supplier_type, s.is_verified, s.phone,
+    p.id, p.name, p.category, p.unit, p.search_keywords,
     l.price_per_unit, l.available_qty, l.min_order_qty,
     road_km(me.location, s.location),
     delivery_fee_for(road_km(me.location, s.location)),
     road_km(me.location, s.location) <= s.service_radius_km
   from profiles me
-  join supplier_listings l on l.is_active and l.available_qty > 0
+  join supplier_listings l on l.is_active
   join profiles s on s.id = l.supplier_id and s.role = 'supplier' and s.location is not null
   join products p on p.id = l.product_id
   where me.id = auth.uid() and me.location is not null
