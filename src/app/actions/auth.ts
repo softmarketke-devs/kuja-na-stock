@@ -21,6 +21,19 @@ export async function signIn(_prev: ActionResult, formData: FormData): Promise<A
   redirect(safeNext(str(formData, 'next')))
 }
 
+const COMMON_PASSWORDS = ['password', 'qwertyui', 'qwerty123', '12345678', '123456789', '1234567890', 'iloveyou', 'abc12345', 'kujanastock']
+
+/** Returns why a password is too weak, or null. Supabase's own rules (dashboard) apply on top. */
+function weakPassword(password: string, email: string): string | null {
+  if (password.length < 8) return 'Password must be at least 8 characters'
+  if (/^(.)\1+$/.test(password) || /^\d+$/.test(password)) return 'Choose a password that is not just repeated or numbers only'
+  const lower = password.toLowerCase()
+  if (COMMON_PASSWORDS.some((c) => lower.includes(c))) return 'That password is too common. Choose a harder one'
+  const local = email.split('@')[0]?.toLowerCase()
+  if (local && local.length >= 4 && lower.includes(local)) return 'Your password should not contain your email name'
+  return null
+}
+
 export async function signUp(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
   const role = str(formData, 'role')
   const phone = str(formData, 'phone')
@@ -32,7 +45,8 @@ export async function signUp(_prev: ActionResult, formData: FormData): Promise<A
   if (!isKenyanMobile(phone)) {
     return { ok: false, error: 'Enter a Kenyan mobile number, e.g. 0712 345 678. We send order updates by SMS.' }
   }
-  if (password.length < 8) return { ok: false, error: 'Password must be at least 8 characters' }
+  const weak = weakPassword(password, str(formData, 'email'))
+  if (weak) return { ok: false, error: weak }
 
   let carrier: Record<string, unknown> = {}
   if (role === 'rider') {

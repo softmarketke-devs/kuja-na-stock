@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Geist, Inconsolata } from 'next/font/google'
+import { Bricolage_Grotesque, Geist, Inconsolata } from 'next/font/google'
 import './globals.css'
 import { RegisterServiceWorker } from '@/components/RegisterServiceWorker'
 import { BRAND_NAME, BRAND_SHORT_NAME, BRAND_TAGLINE, SITE_URL } from '@/lib/brand'
@@ -7,6 +7,12 @@ import { BRAND_NAME, BRAND_SHORT_NAME, BRAND_TAGLINE, SITE_URL } from '@/lib/bra
 const geist = Geist({
   subsets: ['latin'],
   variable: '--font-geist',
+  display: 'swap',
+})
+
+const bricolage = Bricolage_Grotesque({
+  subsets: ['latin'],
+  variable: '--font-bricolage',
   display: 'swap',
 })
 
@@ -20,13 +26,14 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: `${BRAND_NAME} | ${BRAND_TAGLINE}`,
   description: 'Nairobi butcheries order meat in the evening from nearby slaughterhouses and wholesalers, and a licensed meat carrier delivers it before opening.',
-  keywords: [BRAND_NAME.toLowerCase(), 'butchery', 'meat delivery', 'nairobi', 'slaughterhouse', 'meat wholesaler', 'meat carrier'],
+  alternates: { canonical: '/' },
+  twitter: { card: 'summary_large_image' },
   authors: [{ name: BRAND_NAME }],
   openGraph: {
     title: BRAND_NAME,
     description: `${BRAND_TAGLINE}.`,
     type: 'website',
-    images: ['/logo.jpg'],
+    siteName: BRAND_NAME,
   },
   icons: {
     icon: '/icons/icon-192.png',
@@ -56,7 +63,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content={BRAND_SHORT_NAME} />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
-      <body className={`${geist.variable} ${inconsolata.variable} font-sans min-h-screen bg-[#f8fafc] text-[#0f172a] antialiased selection:bg-orange-500 selection:text-white`}>
+      <body className={`${geist.variable} ${bricolage.variable} ${inconsolata.variable} font-sans min-h-screen bg-paper text-ink antialiased`}>
         {children}
         <RegisterServiceWorker />
       </body>

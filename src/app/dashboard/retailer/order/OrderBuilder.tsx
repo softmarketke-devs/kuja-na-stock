@@ -154,7 +154,7 @@ export function OrderBuilder({
   }
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[1fr_380px] items-start pb-20 lg:pb-0">
+    <div className="grid gap-5 lg:grid-cols-[1fr_380px] items-start pb-16 lg:pb-0">
       <div className="space-y-4">
         {lowStock.length > 0 && (
           <div className="flex flex-wrap gap-2 items-center">
@@ -402,7 +402,7 @@ export function OrderBuilder({
 
       <nav
         aria-label="Quick actions"
-        className="lg:hidden fixed inset-x-0 bottom-0 z-30 flex bg-white border-t border-slate-300 pb-[env(safe-area-inset-bottom)]"
+        className="lg:hidden fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] sm:bottom-0 z-30 flex bg-white border-t border-slate-300"
       >
         {SUPPORT_WHATSAPP && (
           <a

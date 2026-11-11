@@ -1,13 +1,14 @@
 import type { Metadata } from 'next'
 import { ContactButtons } from '@/components/ContactButtons'
 import { LegalPage } from '@/components/LegalPage'
-import { BRAND_NAME } from '@/lib/brand'
+import { pageMetadata } from '@/lib/seo'
 import { DELIVERY_WINDOW, FEE_PER_KM, ISSUE_REPORT_HOURS, MAX_DROPS_PER_RUN, MIN_DELIVERY_FEE, ORDER_CUTOFF_HOUR } from '@/lib/constants'
 
-export const metadata: Metadata = {
-  title: `Delivery and payment | ${BRAND_NAME}`,
+export const metadata: Metadata = pageMetadata({
+  title: 'Delivery and payment',
   description: `How ordering, delivery and payment work: order by ${ORDER_CUTOFF_HOUR}:00, delivered ${DELIVERY_WINDOW}.`,
-}
+  path: '/delivery-and-payment',
+})
 
 export default function DeliveryAndPaymentPage() {
   return (

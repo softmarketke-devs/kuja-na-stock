@@ -1,9 +1,14 @@
 import type { Metadata } from 'next'
 import { LegalPage } from '@/components/LegalPage'
+import { pageMetadata } from '@/lib/seo'
 import { BRAND_NAME, SUPPORT_EMAIL } from '@/lib/brand'
 import { DELIVERY_WINDOW, FEE_PER_KM, ISSUE_REPORT_HOURS, MIN_DELIVERY_FEE, ORDER_CUTOFF_HOUR } from '@/lib/constants'
 
-export const metadata: Metadata = { title: `Terms of use | ${BRAND_NAME}` }
+export const metadata: Metadata = pageMetadata({
+  title: 'Terms of use',
+  description: `The rules for ordering, supplying and delivering meat through ${BRAND_NAME}.`,
+  path: '/terms',
+})
 
 export default function TermsPage() {
   return (

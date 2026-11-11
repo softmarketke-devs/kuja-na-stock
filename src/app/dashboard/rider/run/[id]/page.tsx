@@ -21,6 +21,7 @@ import {
 } from '@/components/ui'
 import type { DeliveryRun } from '@/types'
 import { DropActions } from './DropActions'
+import { LocationSharer } from './LocationSharer'
 
 export default async function RunPage({ params }: { params: Promise<{ id: string }> }) {
   const profile = await requireProfile('rider')
@@ -73,6 +74,8 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
         </div>
         <RunStatusBadge status={run.status} />
       </div>
+
+      {run.status === 'picked_up' && <LocationSharer runId={run.id} />}
 
       <section>
         <SectionTitle>1. Pick up</SectionTitle>

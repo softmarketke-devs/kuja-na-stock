@@ -1,10 +1,15 @@
 import type { Metadata } from 'next'
 import { ContactButtons } from '@/components/ContactButtons'
 import { LegalPage } from '@/components/LegalPage'
+import { pageMetadata } from '@/lib/seo'
 import { BRAND_NAME } from '@/lib/brand'
 import { DELIVERY_WINDOW, FEE_PER_KM, ISSUE_REPORT_HOURS, MIN_DELIVERY_FEE, ORDER_CUTOFF_HOUR } from '@/lib/constants'
 
-export const metadata: Metadata = { title: `FAQs | ${BRAND_NAME}` }
+export const metadata: Metadata = pageMetadata({
+  title: 'FAQs',
+  description: `Answers for Nairobi butcheries, slaughterhouses, meat wholesalers and carriers using ${BRAND_NAME}: ordering, delivery fees, payment and problems.`,
+  path: '/faq',
+})
 
 const FAQS: { q: string; a: string }[] = [
   {

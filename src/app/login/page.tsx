@@ -1,8 +1,17 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
+import { pageMetadata } from '@/lib/seo'
 import { signIn, signOut } from '@/app/actions/auth'
 import { ActionForm, SubmitButton } from '@/components/ActionForm'
 import { AuthShell } from '@/components/AuthShell'
 import { inputClass, labelClass } from '@/components/ui'
+
+export const metadata: Metadata = pageMetadata({
+  title: 'Sign in',
+  description: 'Sign in to order, supply or deliver meat.',
+  path: '/login',
+  noindex: true,
+})
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string; error?: string }> }) {
   const { next, error } = await searchParams

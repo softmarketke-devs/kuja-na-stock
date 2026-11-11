@@ -2,73 +2,152 @@
 
 @theme {
   --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bricolage), var(--font-geist), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-inconsolata), "Inconsolata", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  --color-substrate: #f8fafc;
-  --color-surface: #ffffff;
-  --color-surface-elevated: #fff7ed;
-  --color-border-subtle: #e2e8f0;
-  --color-border-strong: #cbd5e1;
-  
-  --color-accent-orange: #ea580c;
-  --color-accent-orange-hover: #c2410c;
-  --color-accent-orange-light: #ffedd5;
-  
-  --color-text-bright: #0f172a;
-  --color-text-main: #1e293b;
-  --color-text-muted: #64748b;
-  --color-text-dim: #94a3b8;
+
+  /* Paper, ink and ember: a butcher's-counter palette instead of cold greys. */
+  --color-paper: #faf6f0;
+  --color-ink: #14110f;
+
+  /* The app is written with slate-* classes. Remapping the scale to warm stone changes every screen at once. */
+  --color-slate-50: #faf8f5;
+  --color-slate-100: #f3efe9;
+  --color-slate-200: #e7e1d8;
+  --color-slate-300: #d3cbbf;
+  --color-slate-400: #a39a8d;
+  --color-slate-500: #766e63;
+  --color-slate-600: #574f46;
+  --color-slate-700: #403931;
+  --color-slate-800: #2a2520;
+  --color-slate-900: #1b1713;
+  --color-slate-950: #0f0c0a;
+
+  /* Ember orange, deepened so white text on it passes AA contrast (the old #ea580c was 3.6:1). */
+  --color-orange-50: #fff5ed;
+  --color-orange-100: #ffe8d4;
+  --color-orange-200: #ffcfa6;
+  --color-orange-300: #ffae6d;
+  --color-orange-400: #ff8a3d;
+  --color-orange-500: #f06a1a;
+  --color-orange-600: #d9480f;
+  --color-orange-700: #b43a0b;
+  --color-orange-800: #8f2f0e;
+  --color-orange-900: #752a10;
+
+  --radius-card: 1rem;
+  --shadow-soft: 0 1px 2px rgb(20 17 15 / 0.05), 0 6px 20px -8px rgb(20 17 15 / 0.12);
+  --shadow-lift: 0 2px 4px rgb(20 17 15 / 0.06), 0 14px 32px -10px rgb(20 17 15 / 0.22);
 }
 
 @layer base {
   :root {
     color-scheme: light;
-    background-color: #f8fafc;
-    color: #0f172a;
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
   }
 
   body {
     font-family: var(--font-sans);
-    background-color: #f8fafc;
-    color: #0f172a;
+    background-color: var(--color-paper);
+    color: var(--color-ink);
     font-feature-settings: "tnum" 1, "zero" 1;
     overflow-x: hidden;
   }
 
-  /* Custom scrollbar */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
   }
-  ::-webkit-scrollbar-track {
-    background: #f1f5f9;
+
+  /* Anything built with the plain "border" class gets soft corners; borders on one side (border-b etc.) stay straight. */
+  [class~="border"], input, select, textarea, button {
+    border-radius: 0.875rem;
   }
-  ::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 2px;
+  .leaflet-container, .leaflet-container * { border-radius: 0; }
+  .leaflet-container { border-radius: inherit; }
+
+  :focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--color-orange-500) 55%, transparent);
+    outline-offset: 2px;
   }
-  ::-webkit-scrollbar-thumb:hover {
-    background: #ea580c;
+
+  button:not(:disabled), a[class*="bg-"] {
+    transition: transform 0.12s ease, background-color 0.15s ease, box-shadow 0.15s ease;
   }
+  button:not(:disabled):active { transform: scale(0.97); }
+
+  ::selection { background: var(--color-orange-500); color: #fff; }
+
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--color-slate-300); border-radius: 8px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-orange-600); }
 }
 
-/* Subtle tactical grid background (light mode) */
+/* Subtle grain and glow used behind hero areas and auth screens. */
+.ember-glow {
+  background:
+    radial-gradient(60rem 30rem at 85% -10%, rgb(240 106 26 / 0.18), transparent 60%),
+    radial-gradient(40rem 24rem at -10% 110%, rgb(217 72 15 / 0.10), transparent 60%),
+    var(--color-paper);
+}
+
 .tactical-grid {
   background-size: 32px 32px;
-  background-image: 
+  background-image:
     linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
 }
 
-/* Dot matrix pattern (light mode) */
 .dot-matrix {
   background-image: radial-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px);
   background-size: 16px 16px;
 }
 
-/* Inconsolata custom typography class */
 .inconsolata {
   font-family: var(--font-inconsolata), "Inconsolata", monospace;
   font-optical-sizing: auto;
   font-style: normal;
   font-variation-settings: "wdth" 100;
+}
+
+/* Skeleton loading blocks. */
+@keyframes shimmer {
+  to { background-position: -200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, var(--color-slate-100) 25%, var(--color-slate-200) 37%, var(--color-slate-100) 63%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+  border-radius: 0.75rem;
+}
+
+/* Page content eases in. Opacity and transform only. */
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+.rise-in { animation: rise-in 0.4s ease-out both; }
+
+/* Landing page: digits and the "Delivered" tick appear in turn, then the loop restarts. */
+@keyframes code-cycle {
+  0%, 4% { opacity: 0; transform: scale(0.7); }
+  10%, 86% { opacity: 1; transform: scale(1); }
+  94%, 100% { opacity: 0; transform: scale(0.7); }
+}
+.code-anim {
+  opacity: 0;
+  animation: code-cycle 7s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .code-anim { animation: none; opacity: 1; transform: none; }
+  .rise-in, .skeleton { animation: none; }
+  button:not(:disabled):active { transform: none; }
 }

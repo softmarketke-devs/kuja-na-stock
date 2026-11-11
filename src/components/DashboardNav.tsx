@@ -49,7 +49,7 @@ export function DashboardNav({ role }: { role: UserRole }) {
               href={item.href}
               aria-current={isActive ? 'page' : undefined}
               className={clsx(
-                'flex items-center gap-2 px-3 py-2.5 text-sm font-semibold border-b-2 whitespace-nowrap',
+                'flex items-center gap-2 px-3.5 py-2.5 text-sm font-bold border-b-[3px] whitespace-nowrap',
                 isActive
                   ? 'text-orange-700 border-orange-600'
                   : 'text-slate-600 border-transparent hover:text-orange-700 hover:border-orange-300',
@@ -63,7 +63,7 @@ export function DashboardNav({ role }: { role: UserRole }) {
       </nav>
 
       <nav
-        className="sm:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t border-slate-200 pb-[env(safe-area-inset-bottom)]"
+        className="sm:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-[0_-8px_24px_-12px_rgb(20_17_15/0.2)] pb-[env(safe-area-inset-bottom)]"
         aria-label="Main"
       >
         <div className="flex">
@@ -75,8 +75,8 @@ export function DashboardNav({ role }: { role: UserRole }) {
                 href={item.href}
                 aria-current={isActive ? 'page' : undefined}
                 className={clsx(
-                  'flex-1 flex flex-col items-center justify-center gap-1 min-h-16 text-xs font-semibold border-t-2 -mt-px',
-                  isActive ? 'text-orange-700 border-orange-600 bg-orange-50' : 'text-slate-500 border-transparent',
+                  'flex-1 flex flex-col items-center justify-center gap-1 min-h-16 text-[11px] font-bold border-t-[3px] -mt-px',
+                  isActive ? 'text-orange-700 border-orange-600 bg-orange-50/80' : 'text-slate-500 border-transparent',
                 )}
               >
                 <item.icon className="w-6 h-6" strokeWidth={isActive ? 2.5 : 2} />

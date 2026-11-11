@@ -1,6 +1,15 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
+import { pageMetadata } from '@/lib/seo'
 import { AuthShell } from '@/components/AuthShell'
 import { SignUpForm } from './SignUpForm'
+
+export const metadata: Metadata = pageMetadata({
+  title: 'Create account',
+  description: 'Register as a butchery, supplier or meat carrier.',
+  path: '/signup',
+  noindex: true,
+})
 
 export default function SignUpPage() {
   return (

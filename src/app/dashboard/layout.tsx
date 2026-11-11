@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { signOut } from '@/app/actions/auth'
 import { LiveRefresh } from '@/components/LiveRefresh'
 import { DashboardNav } from '@/components/DashboardNav'
+import { ChatWidget } from '@/components/ChatWidget'
 import { BRAND_NAME } from '@/lib/brand'
 import type { UserRole } from '@/types'
 
@@ -35,33 +36,33 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-20">
+      <header className="bg-white/85 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-20">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
           <Link href="/dashboard" className="flex items-center gap-2 min-w-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/icons/logo-square.png" alt="" className="w-8 h-8 border border-orange-200 shrink-0" />
+            <img src="/icons/logo-square.png" alt="" className="w-10 h-10 rounded-xl shadow-sm shrink-0" />
             <div className="min-w-0">
-              <div className="text-sm font-black uppercase tracking-tight truncate">
+              <div className="font-display text-base font-extrabold leading-tight tracking-tight truncate">
                 {profile.business_name || profile.full_name || BRAND_NAME}
               </div>
-              <div className="text-[13px] text-orange-700 font-bold uppercase">{ROLE_LABEL[profile.role]}</div>
+              <div className="text-xs text-orange-700 font-bold tracking-wide">{ROLE_LABEL[profile.role]}</div>
             </div>
           </Link>
           <div className="flex items-center gap-1 shrink-0">
             <Link
               href="/dashboard/notifications"
-              className="relative p-2.5 hover:bg-slate-100"
+              className="relative p-3 rounded-xl hover:bg-slate-100"
               aria-label={`Notifications${unread ? `, ${unread} unread` : ''}`}
             >
               <Bell className="w-5 h-5" />
               {!!unread && (
-                <span className="absolute -top-0.5 -right-0.5 bg-orange-600 text-white text-[11px] font-bold min-w-4 h-4 px-1 flex items-center justify-center">
+                <span className="absolute top-1 right-1 bg-orange-600 text-white text-[11px] font-bold min-w-4 h-4 px-1 rounded-full ring-2 ring-white flex items-center justify-center">
                   {unread > 99 ? '99+' : unread}
                 </span>
               )}
             </Link>
             <form action={signOut}>
-              <button type="submit" className="p-2.5 hover:bg-slate-100" aria-label="Sign out">
+              <button type="submit" className="p-3 rounded-xl hover:bg-slate-100" aria-label="Sign out">
                 <LogOut className="w-5 h-5" />
               </button>
             </form>
@@ -71,7 +72,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       </header>
 
       {missingLocation && (
-        <div className="bg-orange-50 border-b border-orange-200">
+        <div className="bg-orange-50 border-b border-orange-200/80">
           <div className="max-w-5xl mx-auto px-4 py-2.5 text-sm flex items-center gap-2">
             <MapPin className="w-4 h-4 text-orange-700 shrink-0" />
             <span>
@@ -86,7 +87,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
         </div>
       )}
 
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 pt-5 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:pb-8">{children}</main>
+      <main className="rise-in flex-1 max-w-5xl w-full mx-auto px-4 pt-6 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:pb-8">{children}</main>
+      {profile.role === 'retailer' && <ChatWidget />}
       <LiveRefresh tables={LIVE_TABLES[profile.role]} userId={profile.id} />
     </div>
   )
