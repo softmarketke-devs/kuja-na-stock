@@ -20,7 +20,7 @@ begin
     when 'supplier' then 'supplier'
     when 'rider' then 'rider'
     when 'customer' then 'customer'
-    else 'retailer'
+    else case when new.raw_app_meta_data->>'provider' = 'google' then 'customer' else 'retailer' end
   end)::user_role;
 
   insert into profiles (

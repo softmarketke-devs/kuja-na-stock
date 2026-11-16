@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { BRAND_NAME, BRAND_TAGLINE, INSTAGRAM_HANDLE, INSTAGRAM_URL, SITE_URL, SUPPORT_EMAIL, SUPPORT_WHATSAPP } from '@/lib/brand'
+import { BRAND_NAME, BRAND_TAGLINE, INSTAGRAM_URL, SITE_URL, SUPPORT_WHATSAPP } from '@/lib/brand'
+import { SocialLinks } from '@/components/SocialLinks'
 import { ALL_CUTS, FEATURED } from '@/lib/steak-map'
 import { priceFor } from '@/lib/catalogue'
 import { SteakMap } from '@/components/landing/SteakMap'
@@ -12,8 +13,6 @@ import { StoreAssistant } from '@/components/storefront/StoreAssistant'
 import { getProfile } from '@/lib/auth'
 
 const wa = (text: string) => `https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(`Hello ${BRAND_NAME}, ${text}`)}`
-// 254716280493 -> 0716 280 493
-const phoneDisplay = SUPPORT_WHATSAPP.startsWith('254') ? `0${SUPPORT_WHATSAPP.slice(3, 6)} ${SUPPORT_WHATSAPP.slice(6, 9)} ${SUPPORT_WHATSAPP.slice(9)}` : SUPPORT_WHATSAPP
 const price = (name: string) => {
   const p = priceFor(name)
   return p ? `KSh ${p.perKg.toLocaleString('en-KE')}/kg` : 'Ask for price'
@@ -31,7 +30,6 @@ const ORG_JSON_LD = {
   url: SITE_URL,
   description: BRAND_TAGLINE,
   areaServed: { '@type': 'City', name: 'Nairobi' },
-  email: SUPPORT_EMAIL,
   sameAs: [INSTAGRAM_URL],
 }
 
@@ -118,18 +116,16 @@ export default async function Home() {
       </main>
 
       <footer className="border-t border-slate-200 text-slate-500 text-[15px]">
-        <div className="max-w-[1160px] mx-auto px-5 py-8 space-y-4">
+        <div className="max-w-[1160px] mx-auto px-5 py-8 pr-20 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
             <span>© {new Date().getFullYear()} {BRAND_NAME} · Nairobi</span>
-            <span>WhatsApp <a href={wa('I have a question.')} rel="noopener" className="underline">{phoneDisplay}</a></span>
-            <a href={INSTAGRAM_URL} rel="noopener" className="underline">{INSTAGRAM_HANDLE}</a>
+            <SocialLinks whatsappHref={wa('I have a question.')} />
             {!profile && <Link href="/signup" className="underline">Create an account</Link>}
             <Link href="/about" className="underline">About us</Link>
             <Link href="/faq" className="underline">FAQs</Link>
             <Link href="/delivery-and-payment" className="underline">Delivery and payment</Link>
             <Link href="/terms" className="underline">Terms</Link>
             <Link href="/privacy" className="underline">Privacy</Link>
-            <a href={`mailto:${SUPPORT_EMAIL}`} className="underline">{SUPPORT_EMAIL}</a>
           </div>
         </div>
       </footer>

@@ -20,5 +20,7 @@ export async function GET(request: NextRequest) {
   if (error) {
     return NextResponse.redirect(`${origin}/login?error=confirm`)
   }
-  return NextResponse.redirect(`${origin}/dashboard/settings?welcome=1`)
+  const next = searchParams.get('next') ?? ''
+  const safe = next.startsWith('/') && !next.startsWith('//') ? next : '/dashboard/settings?welcome=1'
+  return NextResponse.redirect(`${origin}${safe}`)
 }

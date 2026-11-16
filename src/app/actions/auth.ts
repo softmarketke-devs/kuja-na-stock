@@ -93,6 +93,25 @@ export async function signUp(_prev: ActionResult, formData: FormData): Promise<A
   redirect('/dashboard/settings?welcome=1')
 }
 
+/** Starts Google sign-in. Google must be enabled in Supabase (Authentication, Providers). New Google users become customers. */
+export async function signInWithGoogle(): Promise<ActionResult> {
+  const origin = process.env.NEXT_PUBLIC_SITE_URL || (await headers()).get('origin') || ''
+  const supabase = await createClient()
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: `${origin}/auth/confirm?next=/dashboard` },
+  })
+  if (error || !data.url) {
+    return { ok: false, error: 'Google sign-in is not available yet. Use your email and password for now.' }
+  }
+  // Supabase answers 400 when the Google provider is switched off. Check first so the user sees a message, not a raw error page.
+  const probe = await fetch(data.url, { redirect: 'manual' }).catch(() => null)
+  if (!probe || probe.status >= 400) {
+    return { ok: false, error: 'Google sign-in is not switched on yet. Use your email and password for now.' }
+  }
+  redirect(data.url)
+}
+
 export async function signOut() {
   const supabase = await createClient()
   await supabase.auth.signOut()

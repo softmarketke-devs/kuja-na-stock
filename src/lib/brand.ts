@@ -7,6 +7,8 @@ export const BRAND_SHORT_NAME = 'BIGPremiumCuts'
 export const BRAND_TAGLINE = 'Know your cut, then order it right'
 export const INSTAGRAM_URL = 'https://www.instagram.com/bigpremiumcuts.ke/'
 export const INSTAGRAM_HANDLE = '@bigpremiumcuts.ke'
+// TODO: replace with the real TikTok profile link once the client has it.
+export const TIKTOK_URL = process.env.NEXT_PUBLIC_TIKTOK_URL || 'https://www.tiktok.com/'
 export const SUPPORT_EMAIL = 'softmarketke@gmail.com' // replace with a role address on the real domain
 
 // Set NEXT_PUBLIC_SITE_URL in production. The fallback is the Vercel URL until a custom domain is attached.

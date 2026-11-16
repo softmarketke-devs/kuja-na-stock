@@ -4,6 +4,8 @@ import { pageMetadata } from '@/lib/seo'
 import { signIn, signOut } from '@/app/actions/auth'
 import { ActionForm, SubmitButton } from '@/components/ActionForm'
 import { AuthShell } from '@/components/AuthShell'
+import { GoogleButton } from '@/components/GoogleButton'
+import { PasswordInput } from '@/components/PasswordInput'
 import { inputClass, labelClass } from '@/components/ui'
 
 export const metadata: Metadata = pageMetadata({
@@ -41,10 +43,11 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         </div>
         <div>
           <label className={labelClass} htmlFor="password">Password</label>
-          <input id="password" name="password" type="password" autoComplete="current-password" required className={inputClass} />
+          <PasswordInput id="password" name="password" autoComplete="current-password" required />
         </div>
         <SubmitButton pendingText="Signing in…">Sign in</SubmitButton>
       </ActionForm>
+      <GoogleButton />
       <p className="text-sm text-slate-600 mt-5">
         New here?{' '}
         <Link href="/signup" className="font-bold text-orange-700 underline">

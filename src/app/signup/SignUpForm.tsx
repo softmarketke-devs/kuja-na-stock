@@ -7,6 +7,7 @@ import { ShoppingBag, Store, Truck, Warehouse } from 'lucide-react'
 import { signUp } from '@/app/actions/auth'
 import { ActionForm, SubmitButton } from '@/components/ActionForm'
 import { inputClass, labelClass } from '@/components/ui'
+import { PasswordInput } from '@/components/PasswordInput'
 
 const ROLES = [
   { value: 'customer', label: 'Customer', hint: 'I want to buy meat for myself or my family', icon: ShoppingBag },
@@ -120,7 +121,7 @@ export function SignUpForm() {
       </div>
       <div>
         <label className={labelClass} htmlFor="password">Password (8+ characters)</label>
-        <input id="password" name="password" type="password" required minLength={8} autoComplete="new-password" className={inputClass} />
+        <PasswordInput id="password" name="password" required minLength={8} autoComplete="new-password" />
       </div>
       <p className="text-xs text-slate-500">
         By creating an account you agree to the{' '}
