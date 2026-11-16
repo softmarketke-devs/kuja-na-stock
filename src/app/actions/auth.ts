@@ -112,6 +112,35 @@ export async function signInWithGoogle(): Promise<ActionResult> {
   redirect(data.url)
 }
 
+/** Emails a reset link. Always answers the same way, so nobody can use it to find out who has an account. */
+export async function requestPasswordReset(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
+  const email = str(formData, 'email')
+  if (!email.includes('@')) return { ok: false, error: 'Enter the email you signed up with' }
+  const origin = process.env.NEXT_PUBLIC_SITE_URL || (await headers()).get('origin') || ''
+  const supabase = await createClient()
+  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${origin}/auth/confirm?next=/reset-password` })
+  if (error && /rate|seconds|too many/i.test(error.message)) {
+    return { ok: false, error: 'Too many requests. Wait a minute and try again.' }
+  }
+  return { ok: true, message: 'If that email has an account, a reset link is on its way. It can take a minute to arrive.' }
+}
+
+/** Sets the new password for the signed-in recovery session, then opens the dashboard. */
+export async function updatePassword(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
+  const password = str(formData, 'password')
+  if (password !== str(formData, 'confirm')) return { ok: false, error: 'The two passwords do not match' }
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { ok: false, error: 'This reset link has expired. Ask for a new one.' }
+  const weak = weakPassword(password, user.email ?? '')
+  if (weak) return { ok: false, error: weak }
+  const { error } = await supabase.auth.updateUser({ password })
+  if (error) return { ok: false, error: error.message }
+  redirect('/dashboard')
+}
+
 export async function signOut() {
   const supabase = await createClient()
   await supabase.auth.signOut()
