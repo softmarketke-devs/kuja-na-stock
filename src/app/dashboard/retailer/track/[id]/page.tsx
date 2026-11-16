@@ -39,7 +39,7 @@ export default async function TrackOrderPage({ params }: { params: Promise<{ id:
       </Link>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-black uppercase tracking-tight">Track order #{order.order_no}</h1>
+          <h1 className="font-display text-2xl font-bold">Track order #{order.order_no}</h1>
           <p className="text-sm text-slate-600">
             {formatDate(order.delivery_date)}, {DELIVERY_WINDOW} · from {supplier?.business_name || supplier?.full_name}
           </p>

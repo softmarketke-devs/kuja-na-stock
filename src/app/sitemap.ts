@@ -5,6 +5,7 @@ import { SITE_URL } from '@/lib/brand'
 const PAGES = [
   { path: '', priority: 1 },
   { path: '/delivery-and-payment', priority: 0.7 },
+  { path: '/about', priority: 0.7 },
   { path: '/faq', priority: 0.7 },
   { path: '/terms', priority: 0.3 },
   { path: '/privacy', priority: 0.3 },

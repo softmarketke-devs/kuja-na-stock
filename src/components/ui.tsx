@@ -8,7 +8,7 @@ export const inputClass =
   'w-full min-h-12 bg-white border border-slate-300 rounded-xl px-4 py-3 text-base text-slate-900 placeholder:text-slate-400 shadow-xs focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/15 transition-shadow'
 export const labelClass = 'block text-[13px] font-bold text-slate-700 mb-1.5'
 export const primaryButton =
-  'inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm min-h-12 px-5 py-2.5 shadow-[0_6px_16px_-6px_rgb(217_72_15/0.7)] hover:shadow-[0_8px_20px_-6px_rgb(217_72_15/0.8)]'
+  'inline-flex items-center justify-center gap-2 rounded-sm bg-orange-400 hover:bg-orange-300 disabled:opacity-50 disabled:cursor-not-allowed text-[#14100c] font-semibold text-sm min-h-12 px-5 py-2.5'
 export const secondaryButton =
   'inline-flex items-center justify-center gap-2 rounded-xl bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed border border-slate-300 text-slate-800 font-bold text-sm min-h-12 px-5 py-2.5 shadow-xs'
 export const dangerButton =
@@ -25,8 +25,8 @@ export function Card({ children, className }: { children: React.ReactNode; class
 export function SectionTitle({ children, aside }: { children: React.ReactNode; aside?: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-3 mb-3">
-      <h2 className="flex items-center gap-2 text-[13px] font-black uppercase tracking-[0.12em] text-slate-800">
-        <span className="w-1.5 h-4 rounded-full bg-orange-600" aria-hidden />
+      <h2 className="flex items-center gap-2 font-display text-lg font-semibold text-slate-900">
+        <span className="w-1 h-4 bg-orange-600" aria-hidden />
         {children}
       </h2>
       {aside}

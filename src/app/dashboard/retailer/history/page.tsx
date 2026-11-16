@@ -28,7 +28,7 @@ export default async function RetailerHistory() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-xl font-black uppercase tracking-tight">Order history</h1>
+        <h1 className="font-display text-2xl font-bold">Order history</h1>
         <p className="text-sm text-slate-600">
           Last 60 days: {delivered.length} deliveries, {ksh(spent)} paid.
         </p>

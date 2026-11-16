@@ -28,7 +28,7 @@ export default async function AdminPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-black uppercase tracking-tight">Carrier permits</h1>
+      <h1 className="font-display text-2xl font-bold">Carrier permits</h1>
       <p className="text-sm text-slate-600 max-w-2xl">
         A carrier can only be offered or accept runs once you mark them as checked. Compare the permit number, expiry and
         vehicle below with the permit document before you do. Changing any of them on their account clears the check.

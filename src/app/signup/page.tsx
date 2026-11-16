@@ -6,14 +6,14 @@ import { SignUpForm } from './SignUpForm'
 
 export const metadata: Metadata = pageMetadata({
   title: 'Create account',
-  description: 'Register as a butchery, supplier or meat carrier.',
+  description: 'Create an account to order meat, or register as a butchery, supplier or meat carrier.',
   path: '/signup',
   noindex: true,
 })
 
 export default function SignUpPage() {
   return (
-    <AuthShell title="Create account" subtitle="Order tonight. Stocked by 7 AM.">
+    <AuthShell title="Create account" subtitle="Know your cut, then order it right.">
       <SignUpForm />
       <p className="text-sm text-slate-600 mt-5">
         Already registered?{' '}

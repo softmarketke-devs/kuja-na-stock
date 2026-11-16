@@ -3,12 +3,13 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { clsx } from 'clsx'
-import { Store, Truck, Warehouse } from 'lucide-react'
+import { ShoppingBag, Store, Truck, Warehouse } from 'lucide-react'
 import { signUp } from '@/app/actions/auth'
 import { ActionForm, SubmitButton } from '@/components/ActionForm'
 import { inputClass, labelClass } from '@/components/ui'
 
 const ROLES = [
+  { value: 'customer', label: 'Customer', hint: 'I want to buy meat for myself or my family', icon: ShoppingBag },
   { value: 'retailer', label: 'Butchery', hint: 'I order meat for my butchery', icon: Store },
   { value: 'supplier', label: 'Supplier', hint: 'I sell from a slaughterhouse or as a meat wholesaler', icon: Warehouse },
   {
@@ -20,13 +21,13 @@ const ROLES = [
 ] as const
 
 export function SignUpForm() {
-  const [role, setRole] = useState<(typeof ROLES)[number]['value']>('retailer')
+  const [role, setRole] = useState<(typeof ROLES)[number]['value']>('customer')
 
   return (
     <ActionForm action={signUp} className="space-y-4">
       <fieldset>
         <legend className={labelClass}>I am a…</legend>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {ROLES.map((r) => (
             <label
               key={r.value}
@@ -55,7 +56,7 @@ export function SignUpForm() {
         <label className={labelClass} htmlFor="full_name">Your name</label>
         <input id="full_name" name="full_name" required autoComplete="name" className={inputClass} />
       </div>
-      {role !== 'rider' && (
+      {role !== 'rider' && role !== 'customer' && (
         <div>
           <label className={labelClass} htmlFor="business_name">
             {role === 'retailer' ? 'Butchery name' : 'Business name'}

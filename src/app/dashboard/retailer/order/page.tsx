@@ -52,7 +52,7 @@ export default async function OrderPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
       />
       <div>
-        <h1 className="text-xl font-black uppercase tracking-tight">Order stock</h1>
+        <h1 className="font-display text-2xl font-bold">Order stock</h1>
         <p className="text-sm text-slate-600">
           Delivery {formatDate(nextDate)}, {DELIVERY_WINDOW}
           {!isBeforeCutoff() && ' (9 PM cutoff passed)'}. Prices below include the delivery fee to your butchery.

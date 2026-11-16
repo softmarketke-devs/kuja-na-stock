@@ -56,12 +56,12 @@ export function TrackingMap({
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(m)
 
-    L.marker([dropoff.lat, dropoff.lng], { icon: squareIcon('B', '#ea580c'), title: 'Your butchery' }).addTo(m)
+    L.marker([dropoff.lat, dropoff.lng], { icon: squareIcon('B', '#8a6420'), title: 'Your butchery' }).addTo(m)
     const bounds = L.latLngBounds([[dropoff.lat, dropoff.lng]])
     if (pickup) {
-      L.marker([pickup.lat, pickup.lng], { icon: squareIcon('P', '#0f172a'), title: 'Supplier pickup' }).addTo(m)
+      L.marker([pickup.lat, pickup.lng], { icon: squareIcon('P', '#120e0c'), title: 'Supplier pickup' }).addTo(m)
       L.polyline([[pickup.lat, pickup.lng], [dropoff.lat, dropoff.lng]], {
-        color: '#ea580c', weight: 4, opacity: 0.6, dashArray: '2 8',
+        color: '#8a6420', weight: 4, opacity: 0.6, dashArray: '2 8',
       }).addTo(m)
       bounds.extend([pickup.lat, pickup.lng])
     }

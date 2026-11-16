@@ -26,7 +26,7 @@ export default async function AccountPage({
           </p>
         </div>
       )}
-      <h1 className="text-xl font-black uppercase tracking-tight">Account</h1>
+      <h1 className="font-display text-2xl font-bold">Account</h1>
 
       {profile.role === 'rider' && (
         <section>

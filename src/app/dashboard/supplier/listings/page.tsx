@@ -23,7 +23,7 @@ export default async function ListingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-black uppercase tracking-tight">My listings</h1>
+        <h1 className="font-display text-2xl font-bold">My listings</h1>
         <p className="text-sm text-slate-600">
           Retailers within {profile.service_radius_km} km see these prices next to other suppliers. Stock is reserved
           when you confirm an order.

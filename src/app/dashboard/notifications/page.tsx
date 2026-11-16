@@ -22,7 +22,7 @@ export default async function NotificationsPage() {
   return (
     <div className="space-y-4 max-w-2xl">
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-xl font-black uppercase tracking-tight">Notifications</h1>
+        <h1 className="font-display text-2xl font-bold">Notifications</h1>
         {unread > 0 && (
           <ActionForm action={markAllRead}>
             <SubmitButton className={secondaryButton}>Mark all read</SubmitButton>

@@ -40,7 +40,7 @@ export async function signUp(_prev: ActionResult, formData: FormData): Promise<A
   const fullName = str(formData, 'full_name')
   const password = str(formData, 'password')
 
-  if (!['retailer', 'supplier', 'rider'].includes(role)) return { ok: false, error: 'Choose an account type' }
+  if (!['retailer', 'supplier', 'rider', 'customer'].includes(role)) return { ok: false, error: 'Choose an account type' }
   if (!fullName) return { ok: false, error: 'Enter your name' }
   if (!isKenyanMobile(phone)) {
     return { ok: false, error: 'Enter a Kenyan mobile number, e.g. 0712 345 678. We send order updates by SMS.' }

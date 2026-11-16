@@ -1,26 +1,18 @@
 import Link from 'next/link'
-import { Bell, LogOut, MapPin } from 'lucide-react'
+import { MapPin } from 'lucide-react'
 import { requireProfile } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
-import { signOut } from '@/app/actions/auth'
 import { LiveRefresh } from '@/components/LiveRefresh'
-import { DashboardNav } from '@/components/DashboardNav'
+import { DashboardHeader } from '@/components/DashboardHeader'
 import { ChatWidget } from '@/components/ChatWidget'
-import { BRAND_NAME } from '@/lib/brand'
 import type { UserRole } from '@/types'
 
 const LIVE_TABLES: Record<UserRole, string[]> = {
   retailer: ['orders', 'delivery_runs', 'notifications'],
   supplier: ['orders', 'delivery_runs', 'notifications'],
   rider: ['delivery_runs', 'orders', 'notifications'],
-  admin: ['notifications'],
-}
-
-const ROLE_LABEL: Record<UserRole, string> = {
-  retailer: 'Retailer',
-  supplier: 'Supplier',
-  rider: 'Meat carrier',
-  admin: 'Admin',
+  admin: ['notifications', 'customer_orders'],
+  customer: ['customer_orders', 'notifications'],
 }
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -32,44 +24,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
     .eq('user_id', profile.id)
     .eq('is_read', false)
 
-  const missingLocation = profile.lat === null || profile.lng === null
+  const missingLocation = profile.role !== 'customer' && (profile.lat === null || profile.lng === null)
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="bg-white/85 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-20">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-          <Link href="/dashboard" className="flex items-center gap-2 min-w-0">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/icons/logo-square.png" alt="" className="w-10 h-10 rounded-xl shadow-sm shrink-0" />
-            <div className="min-w-0">
-              <div className="font-display text-base font-extrabold leading-tight tracking-tight truncate">
-                {profile.business_name || profile.full_name || BRAND_NAME}
-              </div>
-              <div className="text-xs text-orange-700 font-bold tracking-wide">{ROLE_LABEL[profile.role]}</div>
-            </div>
-          </Link>
-          <div className="flex items-center gap-1 shrink-0">
-            <Link
-              href="/dashboard/notifications"
-              className="relative p-3 rounded-xl hover:bg-slate-100"
-              aria-label={`Notifications${unread ? `, ${unread} unread` : ''}`}
-            >
-              <Bell className="w-5 h-5" />
-              {!!unread && (
-                <span className="absolute top-1 right-1 bg-orange-600 text-white text-[11px] font-bold min-w-4 h-4 px-1 rounded-full ring-2 ring-white flex items-center justify-center">
-                  {unread > 99 ? '99+' : unread}
-                </span>
-              )}
-            </Link>
-            <form action={signOut}>
-              <button type="submit" className="p-3 rounded-xl hover:bg-slate-100" aria-label="Sign out">
-                <LogOut className="w-5 h-5" />
-              </button>
-            </form>
-          </div>
-        </div>
-        <DashboardNav role={profile.role} />
-      </header>
+      <DashboardHeader profile={profile} unread={unread ?? 0} />
 
       {missingLocation && (
         <div className="bg-orange-50 border-b border-orange-200/80">

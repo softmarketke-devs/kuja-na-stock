@@ -67,7 +67,7 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
 
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-black uppercase tracking-tight">{formatDate(run.run_date)} run</h1>
+          <h1 className="font-display text-2xl font-bold">{formatDate(run.run_date)} run</h1>
           <p className="text-sm text-slate-600">
             Pickup 05:00 · deliver {DELIVERY_WINDOW} · earn {ksh(run.rider_fee)}
           </p>

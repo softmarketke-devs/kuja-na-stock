@@ -1,6 +1,6 @@
 import Link from 'next/link'
-import { Moon, Sunrise, Truck } from 'lucide-react'
-import { BRAND_NAME } from '@/lib/brand'
+import Image from 'next/image'
+import { BRAND_NAME, BRAND_TAGLINE } from '@/lib/brand'
 
 export function AuthShell({
   title,
@@ -12,25 +12,20 @@ export function AuthShell({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen ember-glow flex flex-col justify-center px-4 py-10">
+    <div
+      className="min-h-screen flex flex-col justify-center px-4 py-10 text-[#efe6d3]"
+      style={{ background: 'radial-gradient(70% 60% at 70% 20%, #3a110d, transparent 70%), #120e0c' }}
+    >
       <div className="w-full max-w-md mx-auto rise-in">
-        <Link href="/" className="flex items-center gap-3 justify-center">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/icons/logo-square.png" alt="" className="w-11 h-11 rounded-xl shadow-md" />
-          <span className="font-display text-2xl font-extrabold tracking-tight">{BRAND_NAME}</span>
+        <Link href="/" className="flex flex-col items-center gap-2" aria-label={`${BRAND_NAME}, home`}>
+          <Image src="/brand/big-logo.png" alt={BRAND_NAME} width={72} height={72} preload className="h-[72px] w-auto" />
         </Link>
-        <p className="text-center text-sm text-slate-600 mt-2 flex items-center justify-center gap-2">
-          <Moon className="w-4 h-4 text-orange-600" aria-hidden /> {subtitle}
-        </p>
-        <div className="bg-white border border-slate-200 rounded-3xl shadow-[var(--shadow-lift)] p-6 sm:p-8 mt-6">
-          <h1 className="font-display text-2xl font-extrabold tracking-tight mb-5">{title}</h1>
+        <p className="text-center text-sm text-[#a79c8b] mt-3">{subtitle}</p>
+        <div className="bg-[#f6f0e3] text-[#1c1612] border border-[#e2d6bf] rounded-sm shadow-[var(--shadow-lift)] p-6 sm:p-8 mt-6">
+          <h1 className="font-display text-2xl font-bold mb-5">{title}</h1>
           {children}
         </div>
-        <p className="mt-6 flex items-center justify-center gap-4 text-xs font-bold text-slate-500">
-          <span className="flex items-center gap-1.5"><Moon className="w-3.5 h-3.5" /> Order by 9 PM</span>
-          <span className="flex items-center gap-1.5"><Truck className="w-3.5 h-3.5" /> Carrier at 5 AM</span>
-          <span className="flex items-center gap-1.5"><Sunrise className="w-3.5 h-3.5" /> Stocked by 7</span>
-        </p>
+        <p className="mt-6 text-center text-xs text-[#a79c8b]">{BRAND_TAGLINE}</p>
       </div>
     </div>
   )

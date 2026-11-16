@@ -1,6 +1,6 @@
 // Row types for supabase/schema.sql. Keep in sync when the schema changes.
 
-export type UserRole = 'retailer' | 'supplier' | 'rider' | 'admin'
+export type UserRole = 'retailer' | 'supplier' | 'rider' | 'admin' | 'customer'
 export type SupplierType = 'slaughterhouse' | 'wholesaler'
 export type OrderStatus =
   | 'pending'
@@ -11,6 +11,19 @@ export type OrderStatus =
   | 'delivered'
   | 'failed'
   | 'cancelled'
+export type CustomerOrderStatus = 'pending' | 'quoted' | 'paid' | 'delivered' | 'cancelled'
+export interface CustomerOrder {
+  id: number
+  customer_id: string
+  items: { name: string; kg: number }[]
+  delivery_address: string
+  phone: string | null
+  notes: string | null
+  status: CustomerOrderStatus
+  items_total_kes: number | null
+  delivery_fee_kes: number | null
+  created_at: string
+}
 export type RunStatus = 'open' | 'assigned' | 'picked_up' | 'completed' | 'cancelled'
 export type PaymentMethod = 'cash' | 'mpesa'
 export type IssueType = 'short_delivery' | 'bad_quality' | 'wrong_item' | 'other'

@@ -17,7 +17,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const { next, error } = await searchParams
 
   return (
-    <AuthShell title="Sign in" subtitle="Order tonight. Stocked by 7 AM.">
+    <AuthShell title="Sign in" subtitle="Know your cut, then order it right.">
       {error === 'confirm' && (
         <p role="alert" className="mb-4 text-sm text-red-700 bg-red-50 border border-red-200 px-3 py-2">
           That confirmation link is invalid or has expired. Sign in, or sign up again to get a new link.

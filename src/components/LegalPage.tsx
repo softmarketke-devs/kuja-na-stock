@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { BRAND_NAME } from '@/lib/brand'
 
 export function LegalPage({
@@ -12,10 +13,10 @@ export function LegalPage({
 }) {
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="bg-white border-b border-slate-200">
-        <div className="max-w-3xl mx-auto px-4 py-3">
-          <Link href="/" className="font-black uppercase tracking-tight">
-            {BRAND_NAME}
+      <header className="bg-[#120e0c] text-[#efe6d3] border-b border-[#2f2721]">
+        <div className="max-w-3xl mx-auto px-4 h-16 flex items-center">
+          <Link href="/" aria-label={`${BRAND_NAME}, home`}>
+            <Image src="/brand/big-logo.png" alt={BRAND_NAME} width={52} height={52} className="h-[52px] w-auto" />
           </Link>
         </div>
       </header>
@@ -25,9 +26,9 @@ export function LegalPage({
             Draft for the pilot. Not yet reviewed by a lawyer.
           </div>
         )}
-        <h1 className="text-2xl font-black uppercase tracking-tight">{title}</h1>
+        <h1 className="font-display text-3xl font-bold">{title}</h1>
         {draft && <p className="text-xs text-slate-500 mt-1">Last updated 28 October 2026</p>}
-        <div className="mt-6 space-y-6 text-sm leading-relaxed text-slate-700 [&_h2]:text-base [&_h2]:font-black [&_h2]:text-slate-900 [&_h2]:mb-1.5 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1">
+        <div className="mt-6 space-y-6 text-sm leading-relaxed text-slate-700 [&_h2]:font-display [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:text-slate-900 [&_h2]:mb-1.5 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1">
           {children}
         </div>
       </main>

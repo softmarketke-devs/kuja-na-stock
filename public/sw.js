@@ -1,9 +1,9 @@
-// Service worker for Kuja Na Stock.
+// Service worker for BIG Premium Cuts.
 // Pages are always fetched from the network (orders and stock must be fresh);
 // only static build assets and icons are cached. When offline, navigations
 // fall back to /offline.html.
-const CACHE_NAME = 'kuja-na-stock-v2';
-const PRECACHE = ['/offline.html', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/logo-square.png'];
+const CACHE_NAME = 'big-premium-cuts-v1'; // new name drops the old Kuja Na Stock caches on activate
+const PRECACHE = ['/offline.html', '/icons/icon-192.png', '/icons/icon-512.png', '/brand/big-logo.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

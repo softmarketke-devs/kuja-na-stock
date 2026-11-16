@@ -1,46 +1,27 @@
 import Link from 'next/link'
-import { ArrowRight, FileCheck, KeyRound, Moon, Scale, ShieldCheck, Store, Sunrise, Truck, Warehouse } from 'lucide-react'
-import { BRAND_NAME, BRAND_TAGLINE, SITE_URL, SUPPORT_EMAIL } from '@/lib/brand'
-import { DELIVERY_WINDOW, FEE_PER_KM, ISSUE_REPORT_HOURS, MIN_DELIVERY_FEE, ORDER_CUTOFF_HOUR } from '@/lib/constants'
-import { ContactButtons } from '@/components/ContactButtons'
-import { CutoffCountdown } from '@/components/landing/CutoffCountdown'
-import { DeliveryCodeDemo } from '@/components/landing/DeliveryCodeDemo'
-import { FeeCalculator } from '@/components/landing/FeeCalculator'
-import { primaryButton, secondaryButton } from '@/components/ui'
+import Image from 'next/image'
+import { BRAND_NAME, BRAND_TAGLINE, INSTAGRAM_HANDLE, INSTAGRAM_URL, SITE_URL, SUPPORT_EMAIL, SUPPORT_WHATSAPP } from '@/lib/brand'
+import { ALL_CUTS, FEATURED } from '@/lib/steak-map'
+import { priceFor } from '@/lib/catalogue'
+import { SteakMap } from '@/components/landing/SteakMap'
+import { AccountMenu } from '@/components/AccountMenu'
+import { HeaderActions } from '@/components/storefront/HeaderActions'
+import { AddToCart } from '@/components/storefront/AddToCart'
+import { CartProvider } from '@/lib/cart'
+import { StoreAssistant } from '@/components/storefront/StoreAssistant'
+import { getProfile } from '@/lib/auth'
 
-// The story runs from night to dawn: each step has its own time on the clock.
-const STEPS = [
-  {
-    icon: Moon,
-    time: '21:00',
-    title: 'Order by 9 PM',
-    body: 'After closing, compare nearby slaughterhouses and meat wholesalers side by side: price per kg, distance and delivery fee, all shown before you order.',
-  },
-  {
-    icon: Warehouse,
-    time: 'Overnight',
-    title: 'Supplier confirms',
-    body: 'The supplier reserves your meat overnight and packs it. You get an SMS when it’s confirmed.',
-  },
-  {
-    icon: Truck,
-    time: '05:00',
-    title: 'Carrier collects',
-    body: 'A licensed meat carrier collects the morning’s orders with the certificate of transport and delivers them along one route. You can follow the carrier on a live map.',
-  },
-  {
-    icon: KeyRound,
-    time: 'By 07:00',
-    title: 'Check, pay, give the code',
-    body: 'Check the weight and the inspection stamp, pay the carrier (cash or M-Pesa) and give them your 4-digit code. Your stock count updates automatically.',
-  },
-]
+const wa = (text: string) => `https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(`Hello ${BRAND_NAME}, ${text}`)}`
+// 254716280493 -> 0716 280 493
+const phoneDisplay = SUPPORT_WHATSAPP.startsWith('254') ? `0${SUPPORT_WHATSAPP.slice(3, 6)} ${SUPPORT_WHATSAPP.slice(6, 9)} ${SUPPORT_WHATSAPP.slice(9)}` : SUPPORT_WHATSAPP
+const price = (name: string) => {
+  const p = priceFor(name)
+  return p ? `KSh ${p.perKg.toLocaleString('en-KE')}/kg` : 'Ask for price'
+}
 
-// Sample rows for the example card in the hero. Clearly labelled "Example" on the page.
-const EXAMPLE_ROWS = [
-  { name: 'Supplier A', km: '4.2 km', price: 'KSh 780/kg', total: 'KSh 8,010', tag: 'Best total' },
-  { name: 'Supplier B', km: '9.8 km', price: 'KSh 760/kg', total: 'KSh 8,090', tag: '' },
-  { name: 'Supplier C', km: '2.1 km', price: 'KSh 820/kg', total: 'KSh 8,310', tag: 'Nearest' },
+const FAQ = [
+  { q: 'How do I order?', a: 'Create a customer account, add your cuts to the cart and place the order with your delivery address. We confirm the final price and delivery time. You can also send your cart to us on WhatsApp. Paying in the app is coming.' },
+  { q: 'Do you deliver?', a: 'Yes. Tell us your area in your message and we’ll confirm the fee and timing.' },
 ]
 
 const ORG_JSON_LD = {
@@ -51,196 +32,109 @@ const ORG_JSON_LD = {
   description: BRAND_TAGLINE,
   areaServed: { '@type': 'City', name: 'Nairobi' },
   email: SUPPORT_EMAIL,
+  sameAs: [INSTAGRAM_URL],
 }
 
-export default function Home() {
+export default async function Home() {
+  const profile = await getProfile()
   return (
+    <CartProvider>
     <div className="min-h-screen flex flex-col">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_JSON_LD).replace(/</g, '\\u003c') }} />
-      <header className="bg-white border-b border-slate-200">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-          <Link href="/" className="flex items-center gap-2">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/icons/logo-square.png" alt="" className="w-8 h-8 border border-orange-200" />
-            <span className="font-black uppercase tracking-tight">{BRAND_NAME}</span>
+
+      <header className="sticky top-0 z-20 h-16 bg-[#120e0c] text-[#efe6d3] border-b border-[#2f2721]">
+        <div className="max-w-[1160px] mx-auto px-5 h-16 flex items-center gap-6">
+          <Link href="/" aria-label={`${BRAND_NAME}, home`}>
+            <Image src="/brand/big-logo.png" alt={BRAND_NAME} width={52} height={52} preload className="h-[52px] w-auto" />
           </Link>
-          <div className="flex gap-2">
-            <Link href="/login" className={secondaryButton + ' !py-2'}>
-              Sign in
-            </Link>
-            <Link href="/signup" className={primaryButton + ' !py-2 hidden sm:inline-flex'}>
-              Get started
-            </Link>
+          <nav className="ml-auto hidden md:flex gap-6 text-[15px] text-[#a79c8b]">
+            <a href="#order" className="hover:text-[#efe6d3]">Order</a>
+            <Link href="/about" className="hover:text-[#efe6d3]">About us</Link>
+          </nav>
+          <div className="ml-auto md:ml-0 flex items-center gap-1">
+            <HeaderActions role={profile?.role ?? null}>
+              <AccountMenu profile={profile ? { role: profile.role, full_name: profile.full_name } : null} />
+            </HeaderActions>
+            <a href={wa('I’d like to order.')} rel="noopener" aria-label="Order on WhatsApp" title="Order on WhatsApp" className="relative w-10 h-10 flex items-center justify-center rounded-sm text-[#efe6d3] hover:bg-[#c8a25a22]">
+              <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor" aria-hidden>
+                <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.21h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2Zm0 18.15h-.01a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.38c0-4.54 3.7-8.23 8.25-8.23 2.2 0 4.27.86 5.82 2.42a8.18 8.18 0 0 1 2.41 5.83c0 4.54-3.7 8.22-8.23 8.22Zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.12-.16.25-.64.81-.78.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-2-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.02-.38.11-.5.11-.11.25-.29.37-.43.12-.15.16-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.41-.42-.56-.43h-.48c-.17 0-.43.06-.66.31-.22.25-.86.85-.86 2.07 0 1.22.89 2.4 1.01 2.56.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.14-1.18-.06-.1-.22-.16-.47-.28Z" />
+              </svg>
+            </a>
           </div>
         </div>
       </header>
 
-      <main className="flex-1">
-        <section
-          className="relative isolate border-b border-slate-200 bg-[#0B1020] bg-cover bg-[position:50%_85%] text-white"
-          style={{ backgroundImage: "url('/hero-beef-cuts.jpg')" }}
-        >
-          <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#0B1020]/90 via-[#0B1020]/65 to-[#0B1020]/30" aria-hidden />
-          <div className="max-w-5xl mx-auto px-4 py-16 sm:py-24 grid gap-10 lg:grid-cols-[1.2fr_1fr] items-center">
-            <div>
-              <p className="text-xs font-black uppercase tracking-wider text-orange-400 flex items-center gap-2">
-                <Sunrise className="w-4 h-4" /> For Nairobi butcheries
-              </p>
-              <h1 className="text-[2.6rem] sm:text-6xl font-extrabold leading-[1] text-balance mt-4 max-w-3xl">
-                Order tonight.{' '}
-                <span className="text-orange-400">Stocked by 7 AM.</span>
-              </h1>
-              <p className="text-lg sm:text-xl text-slate-200 mt-5 max-w-xl leading-relaxed">
-                Order meat in the evening from slaughterhouses and wholesalers near you, and a licensed meat carrier brings it
-                to your butchery {DELIVERY_WINDOW}, before you open.
-              </p>
-              <div className="mt-6">
-                <CutoffCountdown />
-              </div>
-              <div className="flex flex-wrap items-center gap-x-5 gap-y-3 mt-6">
-                <Link href="/signup" className={primaryButton + ' !min-h-14 !px-6 !text-base'}>
-                  <Store className="w-5 h-5" /> I own a butchery <ArrowRight className="w-5 h-5" />
-                </Link>
-                <p className="text-sm text-slate-300">
-                  Or join as a{' '}
-                  <Link href="/signup" className="font-bold text-white underline underline-offset-4">supplier</Link>
-                  {' '}or a{' '}
-                  <Link href="/signup" className="font-bold text-white underline underline-offset-4">meat carrier</Link>
-                </p>
-              </div>
-            </div>
-
-            <div className="hidden lg:block" aria-hidden>
-              <div className="bg-white text-slate-900 border border-slate-200 rounded-3xl shadow-2xl p-5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-black uppercase text-slate-500">Compare suppliers</span>
-                  <span className="text-[11px] font-bold bg-slate-100 border border-slate-200 px-2 py-0.5">Example</span>
-                </div>
-                <div className="font-black mt-2">10 kg beef, boneless</div>
-                <ul className="mt-2 divide-y divide-slate-100 border-y border-slate-100">
-                  {EXAMPLE_ROWS.map((r) => (
-                    <li key={r.name} className="py-2 flex items-center justify-between gap-3 text-sm">
-                      <div>
-                        <div className="font-bold">
-                          {r.name}{' '}
-                          {r.tag && <span className="ml-1 text-[11px] font-bold bg-orange-100 text-orange-800 border border-orange-200 px-1.5 py-0.5">{r.tag}</span>}
-                        </div>
-                        <div className="text-xs text-slate-500">{r.price} · {r.km}</div>
-                      </div>
-                      <div className="font-black tabular-nums">{r.total}</div>
-                    </li>
-                  ))}
-                </ul>
-                <p className="text-xs text-slate-500 mt-2">Totals include delivery to your butchery.</p>
-              </div>
-            </div>
+      <main id="top" className="flex-1">
+        <section className="text-[#efe6d3] pt-10 pb-14" style={{ background: 'radial-gradient(70% 60% at 70% 45%, #3a110d, transparent 70%), #120e0c' }}>
+          <div className="max-w-[1160px] mx-auto px-5">
+            <SteakMap />
           </div>
         </section>
 
-        <section className="bg-white border-b border-slate-200">
-          <dl className="max-w-5xl mx-auto px-4 py-5 grid grid-cols-2 gap-4 sm:grid-cols-4 text-sm">
-            <div>
-              <dt className="text-xs font-bold uppercase text-slate-500">Order by</dt>
-              <dd className="font-black tabular-nums">{ORDER_CUTOFF_HOUR}:00 daily</dd>
-            </div>
-            <div>
-              <dt className="text-xs font-bold uppercase text-slate-500">Delivered</dt>
-              <dd className="font-black tabular-nums">{DELIVERY_WINDOW}</dd>
-            </div>
-            <div>
-              <dt className="text-xs font-bold uppercase text-slate-500">Delivery fee</dt>
-              <dd className="font-black tabular-nums">KSh {FEE_PER_KM}/km, min {MIN_DELIVERY_FEE}</dd>
-            </div>
-            <div>
-              <dt className="text-xs font-bold uppercase text-slate-500">Problems</dt>
-              <dd className="font-black tabular-nums">Report within {ISSUE_REPORT_HOURS} h</dd>
-            </div>
-          </dl>
-        </section>
-
-        {/* Night to dawn: midnight navy, through ember orange, into morning cream. */}
-        <section className="bg-gradient-to-b from-[#0B1020] via-[#7c2d12] to-[#FFF7ED]">
-          <div className="max-w-5xl mx-auto px-4 pt-14 pb-16">
-            <h2 className="text-xs font-black uppercase tracking-wider text-orange-300">How it works: from 9 PM to 7 AM</h2>
-            <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 mt-6">
-              {STEPS.map((s, i) => (
-                <li key={s.title} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-[var(--shadow-soft)] hover:-translate-y-1 hover:shadow-[var(--shadow-lift)] transition-all duration-200">
-                  <div className="flex items-center justify-between">
-                    <span className="w-11 h-11 rounded-xl bg-orange-50 flex items-center justify-center"><s.icon className="w-6 h-6 text-orange-600" /></span>
-                    <span className="text-sm font-black tabular-nums text-orange-700 bg-orange-50 border border-orange-200 rounded-full px-2.5 py-0.5">{s.time}</span>
-                  </div>
-                  <div className="text-[13px] font-bold text-slate-400 mt-3">STEP {i + 1}</div>
-                  <h3 className="font-display text-lg font-extrabold leading-tight">{s.title}</h3>
-                  <p className="text-sm text-slate-600 mt-1">{s.body}</p>
-                </li>
+        <section id="order" className="py-14 md:py-[72px]">
+          <div className="max-w-[1160px] mx-auto px-5">
+            <h2 className="font-display font-bold text-[clamp(28px,3.4vw,40px)] leading-tight mb-2">Order your cuts</h2>
+            <p className="text-slate-500 max-w-[34em] mb-7">
+              Add cuts to your cart and place the order in the app with a customer account, or send the cart to us on WhatsApp. We confirm the price and delivery. Prices move with the market. Paying in the app is coming next.
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
+              {FEATURED.map((f) => (
+                <figure key={f.name} className="m-0">
+                  <Image src={f.image} alt={f.name} width={560} height={420} className="w-full aspect-[4/3] object-cover rounded-sm" />
+                  <h3 className="font-display font-semibold text-[19px] mt-2.5">{f.name}</h3>
+                  <p className="text-sm text-slate-500">{f.blurb}</p>
+                  <p className="text-sm font-semibold text-orange-600">{price(f.name)}</p>
+                  <div className="mt-2"><AddToCart name={f.name} /></div>
+                </figure>
               ))}
-            </ol>
+            </div>
+            <details className="mt-6 border-t border-slate-200 pt-3">
+              <summary className="font-display font-semibold text-lg cursor-pointer">See all our cuts</summary>
+              <div className="mt-3 md:columns-2 gap-10">
+                {ALL_CUTS.map((n) => (
+                  <div key={n} className="break-inside-avoid flex justify-between gap-3 py-2 border-b border-slate-200 text-[15px]">
+                    <span>
+                      {n}
+                      {priceFor(n) && <small className="block text-slate-500">{price(n)}</small>}
+                    </span>
+                    <AddToCart name={n} />
+                  </div>
+                ))}
+              </div>
+            </details>
           </div>
         </section>
 
-        <section className="bg-[#FFF7ED]">
-          <div className="max-w-5xl mx-auto px-4 pb-14 grid gap-5 md:grid-cols-2">
-            <FeeCalculator />
-            <DeliveryCodeDemo />
-          </div>
-        </section>
-
-        <section className="bg-white border-y border-slate-200">
-          <div className="max-w-5xl mx-auto px-4 py-12 grid gap-8 sm:grid-cols-3">
-            <div>
-              <span className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center"><Scale className="w-6 h-6 text-orange-600" /></span>
-              <h3 className="font-black mt-2">Prices you can see</h3>
-              <p className="text-sm text-slate-600 mt-1">
-                Every supplier’s price per kg, distance and delivery fee, side by side, before you order.
-              </p>
-            </div>
-            <div>
-              <span className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center"><FileCheck className="w-6 h-6 text-orange-600" /></span>
-              <h3 className="font-black mt-2">Licensed carriers only</h3>
-              <p className="text-sm text-slate-600 mt-1">
-                We check each carrier’s meat transport permit and vehicle before they can take runs, and they enter the
-                certificate of transport at pickup. Delivery is KSh {FEE_PER_KM} per km (minimum KSh {MIN_DELIVERY_FEE}), paid to the carrier.
-              </p>
-            </div>
-            <div>
-              <span className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center"><ShieldCheck className="w-6 h-6 text-orange-600" /></span>
-              <h3 className="font-black mt-2">Problems get resolved</h3>
-              <p className="text-sm text-slate-600 mt-1">
-                A delivery counts only once you give the carrier your code. Short weight or poor quality? Report it within{' '}
-                {ISSUE_REPORT_HOURS} hours and the supplier is told by SMS.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <section className="bg-[#0B1020] text-white">
-          <div className="max-w-5xl mx-auto px-4 py-12 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
-            <div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold leading-tight">Stock up tonight, open tomorrow with a full counter.</h2>
-              <p className="text-slate-300 mt-1">Order before {ORDER_CUTOFF_HOUR}:00 for delivery {DELIVERY_WINDOW}.</p>
-            </div>
-            <Link href="/signup" className={primaryButton + ' !min-h-14 !px-6 !text-base shrink-0'}>
-              <Store className="w-5 h-5" /> I own a butchery
-            </Link>
+        <section id="faq" className="pb-14 md:pb-[72px]">
+          <div className="max-w-[1160px] mx-auto px-5">
+            {FAQ.map((f) => (
+              <details key={f.q} className="border-b border-slate-200 py-3.5">
+                <summary className="font-display font-semibold text-lg cursor-pointer">{f.q}</summary>
+                <p className="text-slate-500 mt-2 max-w-[40em]">{f.a}</p>
+              </details>
+            ))}
           </div>
         </section>
       </main>
 
-      <footer className="border-t border-slate-200 bg-white">
-        <div className="max-w-5xl mx-auto w-full px-4 py-6 space-y-3 text-xs text-slate-500">
-          <ContactButtons />
-          <div className="flex flex-wrap gap-x-4 gap-y-1">
-            <span>
-              © {new Date().getFullYear()} {BRAND_NAME} · Nairobi
-            </span>
-            <Link href="/delivery-and-payment" className="underline">Delivery and payment</Link>
+      <footer className="border-t border-slate-200 text-slate-500 text-[15px]">
+        <div className="max-w-[1160px] mx-auto px-5 py-8 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
+            <span>© {new Date().getFullYear()} {BRAND_NAME} · Nairobi</span>
+            <span>WhatsApp <a href={wa('I have a question.')} rel="noopener" className="underline">{phoneDisplay}</a></span>
+            <a href={INSTAGRAM_URL} rel="noopener" className="underline">{INSTAGRAM_HANDLE}</a>
+            {!profile && <Link href="/signup" className="underline">Create an account</Link>}
+            <Link href="/about" className="underline">About us</Link>
             <Link href="/faq" className="underline">FAQs</Link>
+            <Link href="/delivery-and-payment" className="underline">Delivery and payment</Link>
             <Link href="/terms" className="underline">Terms</Link>
             <Link href="/privacy" className="underline">Privacy</Link>
             <a href={`mailto:${SUPPORT_EMAIL}`} className="underline">{SUPPORT_EMAIL}</a>
           </div>
         </div>
       </footer>
+      <StoreAssistant />
     </div>
+    </CartProvider>
   )
 }

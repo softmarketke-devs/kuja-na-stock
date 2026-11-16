@@ -1,11 +1,11 @@
 {
-  "name": "Kuja Na Stock PWA",
-  "short_name": "KujaNaStock",
-  "description": "Order meat tonight, delivered to your butchery before 7 AM.",
+  "name": "BIG Premium Cuts",
+  "short_name": "BIGPremiumCuts",
+  "description": "Premium steaks, ribs and offal, butchered properly and delivered sealed in Nairobi.",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#f8fafc",
-  "theme_color": "#ea580c",
+  "background_color": "#120e0c",
+  "theme_color": "#120e0c",
   "icons": [
     {
       "src": "/icons/icon-192.png",

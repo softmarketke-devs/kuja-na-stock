@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { clsx } from 'clsx'
-import { ClipboardList, History, Package, ShieldCheck, ShoppingCart, Store, Truck, UserRound, type LucideIcon } from 'lucide-react'
+import { ClipboardList, History, Package, ShieldCheck, ShoppingBag, ShoppingCart, Store, Truck, UserRound, type LucideIcon } from 'lucide-react'
 import type { UserRole } from '@/types'
 
 type NavItem = { href: string; label: string; icon: LucideIcon }
@@ -23,7 +23,12 @@ const NAV: Record<UserRole, NavItem[]> = {
     SETTINGS,
   ],
   rider: [{ href: '/dashboard/rider', label: 'My runs', icon: Truck }, SETTINGS],
-  admin: [{ href: '/dashboard/admin', label: 'Permits', icon: ShieldCheck }, SETTINGS],
+  admin: [
+    { href: '/dashboard/admin', label: 'Permits', icon: ShieldCheck },
+    { href: '/dashboard/admin/customer-orders', label: 'Customer orders', icon: ShoppingBag },
+    SETTINGS,
+  ],
+  customer: [{ href: '/dashboard/customer', label: 'My orders', icon: ShoppingBag }, SETTINGS],
 }
 
 // Longest matching prefix wins, so /dashboard/retailer/order doesn't also light up /dashboard/retailer.
@@ -51,8 +56,8 @@ export function DashboardNav({ role }: { role: UserRole }) {
               className={clsx(
                 'flex items-center gap-2 px-3.5 py-2.5 text-sm font-bold border-b-[3px] whitespace-nowrap',
                 isActive
-                  ? 'text-orange-700 border-orange-600'
-                  : 'text-slate-600 border-transparent hover:text-orange-700 hover:border-orange-300',
+                  ? 'text-[#c8a25a] border-[#c8a25a]'
+                  : 'text-[#a79c8b] border-transparent hover:text-[#efe6d3] hover:border-[#8a6420]',
               )}
             >
               <item.icon className="w-4 h-4" />
@@ -63,7 +68,7 @@ export function DashboardNav({ role }: { role: UserRole }) {
       </nav>
 
       <nav
-        className="sm:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-[0_-8px_24px_-12px_rgb(20_17_15/0.2)] pb-[env(safe-area-inset-bottom)]"
+        className="sm:hidden fixed bottom-0 inset-x-0 z-30 bg-[#120e0c]/95 backdrop-blur-md border-t border-[#2f2721] pb-[env(safe-area-inset-bottom)]"
         aria-label="Main"
       >
         <div className="flex">
@@ -76,7 +81,7 @@ export function DashboardNav({ role }: { role: UserRole }) {
                 aria-current={isActive ? 'page' : undefined}
                 className={clsx(
                   'flex-1 flex flex-col items-center justify-center gap-1 min-h-16 text-[11px] font-bold border-t-[3px] -mt-px',
-                  isActive ? 'text-orange-700 border-orange-600 bg-orange-50/80' : 'text-slate-500 border-transparent',
+                  isActive ? 'text-[#c8a25a] border-[#c8a25a] bg-[#c8a25a14]' : 'text-[#a79c8b] border-transparent',
                 )}
               >
                 <item.icon className="w-6 h-6" strokeWidth={isActive ? 2.5 : 2} />

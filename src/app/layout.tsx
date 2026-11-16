@@ -1,18 +1,18 @@
 import type { Metadata, Viewport } from 'next'
-import { Bricolage_Grotesque, Geist, Inconsolata } from 'next/font/google'
+import { Fraunces, Hanken_Grotesk, Inconsolata } from 'next/font/google'
 import './globals.css'
 import { RegisterServiceWorker } from '@/components/RegisterServiceWorker'
 import { BRAND_NAME, BRAND_SHORT_NAME, BRAND_TAGLINE, SITE_URL } from '@/lib/brand'
 
-const geist = Geist({
+const hanken = Hanken_Grotesk({
   subsets: ['latin'],
-  variable: '--font-geist',
+  variable: '--font-hanken',
   display: 'swap',
 })
 
-const bricolage = Bricolage_Grotesque({
+const fraunces = Fraunces({
   subsets: ['latin'],
-  variable: '--font-bricolage',
+  variable: '--font-fraunces',
   display: 'swap',
 })
 
@@ -25,7 +25,7 @@ const inconsolata = Inconsolata({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: `${BRAND_NAME} | ${BRAND_TAGLINE}`,
-  description: 'Nairobi butcheries order meat in the evening from nearby slaughterhouses and wholesalers, and a licensed meat carrier delivers it before opening.',
+  description: 'Premium steaks, ribs and offal, butchered properly and delivered sealed. Know your cut, then order it right. Butcheries, slaughterhouses and carriers in Nairobi can sign in to trade and deliver.',
   alternates: { canonical: '/' },
   twitter: { card: 'summary_large_image' },
   authors: [{ name: BRAND_NAME }],
@@ -45,7 +45,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#ea580c',
+  themeColor: '#120e0c',
 }
 
 export default function RootLayout({
@@ -54,16 +54,16 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={`${hanken.variable} ${fraunces.variable} ${inconsolata.variable}`} suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#ea580c" />
+        <meta name="theme-color" content="#120e0c" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content={BRAND_SHORT_NAME} />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
-      <body className={`${geist.variable} ${bricolage.variable} ${inconsolata.variable} font-sans min-h-screen bg-paper text-ink antialiased`}>
+      <body className={`font-sans min-h-screen bg-paper text-ink antialiased`}>
         {children}
         <RegisterServiceWorker />
       </body>

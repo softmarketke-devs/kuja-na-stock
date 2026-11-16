@@ -47,3 +47,5 @@ supabase/.temp/
 
 # test output
 tests/results.json
+.old-brand/
+.seed-accounts.txt
