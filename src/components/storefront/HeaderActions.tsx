@@ -3,8 +3,6 @@
 import { useEffect, useState } from 'react'
 import { Minus, Plus, Search, ShoppingCart, Trash2, X } from 'lucide-react'
 import { MAX_KG, MIN_KG, useCart } from '@/lib/cart'
-import { priceFor } from '@/lib/catalogue'
-import { ALL_CUTS } from '@/lib/steak-map'
 import { BRAND_NAME, SUPPORT_WHATSAPP } from '@/lib/brand'
 import Link from 'next/link'
 import { placeCustomerOrder } from '@/app/actions/customer'
@@ -55,11 +53,11 @@ function SearchPanel() {
 }
 
 function SearchBody() {
-  const { closePanels, add, openCart } = useCart()
+  const { closePanels, add, openCart, items } = useCart()
   const [q, setQ] = useState('')
 
   const term = q.trim().toLowerCase()
-  const results = term ? ALL_CUTS.filter((c) => c.toLowerCase().includes(term)) : ALL_CUTS
+  const results = term ? items.filter((c) => c.name.toLowerCase().includes(term)) : items
 
   return (
     <div className="fixed inset-0 z-40 bg-black/60" onClick={closePanels}>
@@ -87,23 +85,27 @@ function SearchBody() {
         <ul className="max-h-[60vh] overflow-y-auto p-0 m-0 list-none">
           {results.length === 0 && <li className="px-4 py-6 text-[#a79c8b]">No cut matches “{q}”.</li>}
           {results.map((c) => {
-            const p = priceFor(c)
+            const soldOut = c.stock_kg < MIN_KG
             return (
-              <li key={c} className="flex items-center justify-between gap-3 px-4 py-2.5 border-b border-[#2f2721] last:border-0">
+              <li key={c.id} className="flex items-center justify-between gap-3 px-4 py-2.5 border-b border-[#2f2721] last:border-0">
                 <span>
-                  {c}
-                  <small className="block text-[#a79c8b]">{p ? `${money(p.perKg)}/kg` : 'Ask for price'}</small>
+                  {c.name}
+                  <small className="block text-[#a79c8b]">{c.price_per_kg ? `${money(c.price_per_kg)}/kg` : 'Price on confirmation'}</small>
                 </span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    add(c)
-                    openCart()
-                  }}
-                  className="text-sm font-semibold rounded-sm bg-[#c8a25a] text-[#14100c] px-3.5 py-2 hover:bg-[#dcbb78]"
-                >
-                  Add to cart
-                </button>
+                {soldOut ? (
+                  <span className="text-sm text-[#a79c8b]">Sold out</span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      add(c.name)
+                      openCart()
+                    }}
+                    className="text-sm font-semibold rounded-sm bg-[#c8a25a] text-[#14100c] px-3.5 py-2 hover:bg-[#dcbb78]"
+                  >
+                    Add to cart
+                  </button>
+                )}
               </li>
             )
           })}
@@ -113,12 +115,30 @@ function SearchBody() {
   )
 }
 
+function PayOption({ value, label, hint, defaultChecked = false }: { value: string; label: string; hint: string; defaultChecked?: boolean }) {
+  return (
+    <label className="flex items-start gap-3 border border-[#2f2721] rounded-sm px-3 py-2.5 cursor-pointer has-[:checked]:border-[#c8a25a] has-[:checked]:bg-[#c8a25a14]">
+      <input type="radio" name="payment_method" value={value} defaultChecked={defaultChecked} className="mt-1 accent-[#c8a25a]" />
+      <span>
+        <span className="block text-sm font-semibold">{label}</span>
+        <span className="block text-xs text-[#a79c8b]">{hint}</span>
+      </span>
+    </label>
+  )
+}
+
 function CartPanel({ role }: { role: UserRole | null }) {
-  const { cartOpen, closePanels, lines, setKg, remove, clear } = useCart()
+  const { cartOpen, closePanels, lines, setKg, remove, clear, itemFor } = useCart()
   useEscape(cartOpen, closePanels)
   if (!cartOpen) return null
 
-  const priced = lines.map((l) => ({ ...l, p: priceFor(l.name) }))
+  const priced = lines.map((l) => {
+    const item = itemFor(l.name)
+    const stock = item?.stock_kg ?? 0
+    const problem = !item || stock < MIN_KG ? 'No longer available' : l.kg > stock ? `Only ${kgLabel(stock)} left` : null
+    return { ...l, stock, problem, p: item?.price_per_kg ? { perKg: item.price_per_kg } : null }
+  })
+  const blocked = priced.some((l) => l.problem)
   const total = priced.reduce((s, l) => s + (l.p ? l.p.perKg * l.kg : 0), 0)
   const unpriced = priced.filter((l) => !l.p).length
   const message = `Hello ${BRAND_NAME}, I’d like to order: ${lines.map((l) => `${l.name} ${kgLabel(l.kg)}`).join('; ')}.`
@@ -147,7 +167,7 @@ function CartPanel({ role }: { role: UserRole | null }) {
               {priced.map((l) => (
                 <li key={l.name} className="px-5 py-4 border-b border-[#2f2721]">
                   <div className="flex justify-between gap-3">
-                    <span className="font-semibold">{l.name}</span>
+                    <span className="font-semibold">{l.name}{l.problem && <span className="block text-xs font-normal text-red-400">{l.problem}. Lower the amount or remove it.</span>}</span>
                     <button type="button" aria-label={`Remove ${l.name}`} onClick={() => remove(l.name)} className="text-[#a79c8b] hover:text-[#efe6d3]">
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -158,7 +178,7 @@ function CartPanel({ role }: { role: UserRole | null }) {
                         <Minus className="w-4 h-4" />
                       </button>
                       <span className="w-16 text-center text-sm tabular-nums">{kgLabel(l.kg)}</span>
-                      <button type="button" aria-label={`More ${l.name}`} disabled={l.kg >= MAX_KG} onClick={() => setKg(l.name, l.kg + 0.5)} className="w-9 h-9 flex items-center justify-center disabled:opacity-40">
+                      <button type="button" aria-label={`More ${l.name}`} disabled={l.kg >= MAX_KG || l.kg + 0.5 > l.stock} onClick={() => setKg(l.name, l.kg + 0.5)} className="w-9 h-9 flex items-center justify-center disabled:opacity-40">
                         <Plus className="w-4 h-4" />
                       </button>
                     </div>
@@ -189,8 +209,13 @@ function CartPanel({ role }: { role: UserRole | null }) {
                   <input type="hidden" name="items" value={JSON.stringify(lines.map((l) => ({ name: l.name, kg: l.kg })))} />
                   <input name="address" required maxLength={300} placeholder="Delivery address (area, street, landmark)" aria-label="Delivery address" className="w-full rounded-sm bg-[#120e0c] border border-[#2f2721] px-3 py-2.5 text-sm text-[#efe6d3] placeholder:text-[#a79c8b]" />
                   <input name="notes" maxLength={500} placeholder="Note (optional)" aria-label="Note" className="w-full rounded-sm bg-[#120e0c] border border-[#2f2721] px-3 py-2.5 text-sm text-[#efe6d3] placeholder:text-[#a79c8b]" />
-                  <SubmitButton pendingText="Sending…">Place order</SubmitButton>
-                  <p className="text-xs text-[#a79c8b]">We confirm the price and delivery, then you pay. Track it under My orders.</p>
+                  <fieldset className="space-y-1.5">
+                    <legend className="text-xs text-[#a79c8b] mb-1">How will you pay?</legend>
+                    <PayOption value="mpesa" label="M-Pesa" hint="You get a prompt on your phone after we confirm the price" defaultChecked />
+                    <PayOption value="cash_on_delivery" label="Pay on delivery" hint="Cash or M-Pesa when the meat arrives" />
+                  </fieldset>
+                  <SubmitButton pendingText="Sending…" disabled={blocked}>Place order</SubmitButton>
+                  <p className="text-xs text-[#a79c8b]">You are not charged until we confirm the price and delivery. Track it under My orders.</p>
                 </ActionForm>
               ) : role ? (
                 <p className="text-xs text-[#a79c8b]">Ordering in the app is for customer accounts. You can still send this cart to us on WhatsApp.</p>

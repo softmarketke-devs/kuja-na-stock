@@ -1,5 +1,8 @@
+-- NOTE (Nov 2026): this is the ORIGINAL B2B schema. BIG Premium Cuts now sells its own stock to customers.
+-- The live database = this file + supabase/migrations/*, ending with 20261118b_remove_b2b.sql, which drops the
+-- B2B tables and functions below. Read the migrations for the current shape.
 -- ============================================================================
--- Kuja Na Stock (KNS) — next-morning meat delivery to butcheries
+-- BIG Premium Cuts — next-morning meat delivery to butcheries
 -- ----------------------------------------------------------------------------
 -- Butcheries order in the evening from slaughterhouses and meat wholesalers,
 -- suppliers confirm, confirmed orders are batched into one delivery run per
@@ -373,7 +376,7 @@ begin
     select phone into v_phone from profiles where id = p_user;
     if v_phone is not null and v_phone <> '' then
       insert into sms_outbox (user_id, to_phone, message)
-      values (p_user, v_phone, 'KNS: ' || p_title || '. ' || p_message);
+      values (p_user, v_phone, 'BIG: ' || p_title || '. ' || p_message);
     end if;
   end if;
 end

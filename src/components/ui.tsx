@@ -1,7 +1,4 @@
 import { clsx } from 'clsx'
-import type { OrderStatus, RunStatus } from '@/types'
-import { ORDER_STATUS_LABEL, RUN_STATUS_LABEL } from '@/lib/format'
-import type { PermitState, PermitStatus } from '@/lib/permit'
 
 // Tap targets are 48px (min-h-12), the size a thumb can hit reliably on a phone.
 export const inputClass =
@@ -56,44 +53,6 @@ export function Badge({ children, color = 'slate' }: { children: React.ReactNode
       {children}
     </span>
   )
-}
-
-const ORDER_TONE: Record<OrderStatus, keyof typeof tone> = {
-  pending: 'orange',
-  confirmed: 'blue',
-  assigned: 'blue',
-  picked_up: 'orange',
-  delivered: 'green',
-  rejected: 'red',
-  failed: 'red',
-  cancelled: 'slate',
-}
-
-export function OrderStatusBadge({ status }: { status: OrderStatus }) {
-  return <Badge color={ORDER_TONE[status]}>{ORDER_STATUS_LABEL[status]}</Badge>
-}
-
-const RUN_TONE: Record<RunStatus, keyof typeof tone> = {
-  open: 'red',
-  assigned: 'blue',
-  picked_up: 'orange',
-  completed: 'green',
-  cancelled: 'slate',
-}
-
-export function RunStatusBadge({ status }: { status: RunStatus }) {
-  return <Badge color={RUN_TONE[status]}>{RUN_STATUS_LABEL[status]}</Badge>
-}
-
-const PERMIT_TONE: Record<PermitState, keyof typeof tone> = {
-  missing: 'red',
-  expired: 'red',
-  expiring: 'orange',
-  valid: 'green',
-}
-
-export function PermitBadge({ status }: { status: PermitStatus }) {
-  return <Badge color={PERMIT_TONE[status.state]}>{status.label}</Badge>
 }
 
 export function PhoneLink({ phone }: { phone: string | null | undefined }) {

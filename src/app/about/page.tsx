@@ -4,7 +4,6 @@ import Image from 'next/image'
 import { LegalPage } from '@/components/LegalPage'
 import { pageMetadata } from '@/lib/seo'
 import { BRAND_NAME, INSTAGRAM_HANDLE, INSTAGRAM_URL } from '@/lib/brand'
-import { DELIVERY_WINDOW, ORDER_CUTOFF_HOUR } from '@/lib/constants'
 
 export const metadata: Metadata = pageMetadata({
   title: 'About us',
@@ -40,15 +39,8 @@ export default function AboutPage() {
         <h2>Buying for your table</h2>
         <p>
           Use the steak map on the <Link href="/" className="underline">home page</Link> to see where each cut comes from, add
-          cuts to your cart and send your order to us. We confirm the price and delivery with you.
-        </p>
-      </section>
-      <section>
-        <h2>For butcheries, slaughterhouses and carriers</h2>
-        <p>
-          Butcheries order from nearby slaughterhouses and meat wholesalers before {ORDER_CUTOFF_HOUR}:00 and get delivery
-          between {DELIVERY_WINDOW}. Licensed meat carriers collect and deliver. You can{' '}
-          <Link href="/signup" className="underline">create an account</Link> or{' '}
+          cuts to your cart and place your order. We confirm the price and delivery with you, then you pay.{' '}
+          <Link href="/signup" className="underline">Create an account</Link> or{' '}
           <Link href="/login" className="underline">log in</Link>, and read{' '}
           <Link href="/faq" className="underline">the FAQs</Link> and{' '}
           <Link href="/delivery-and-payment" className="underline">how delivery and payment work</Link>.

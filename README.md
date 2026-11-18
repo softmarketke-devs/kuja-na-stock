@@ -1,4 +1,4 @@
-# Kuja Na Stock
+# BIG Premium Cuts
 
 **Order tonight. Stocked by 7 AM.**
 

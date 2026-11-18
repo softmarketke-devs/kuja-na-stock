@@ -7,7 +7,7 @@
 --   3. Customer places an order; an admin confirms the price (no prices are stored in the database yet,
 --      they come from the client), the customer pays (payments come in a later step), the admin marks it delivered.
 
--- 1. Signup
+-- 1. Signup: every new account is a customer
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer
 set search_path = public
@@ -16,12 +16,9 @@ declare
   v_meta jsonb := coalesce(new.raw_user_meta_data, '{}');
   v_role user_role;
 begin
-  v_role := (case v_meta->>'role'
-    when 'supplier' then 'supplier'
-    when 'rider' then 'rider'
-    when 'customer' then 'customer'
-    else case when new.raw_app_meta_data->>'provider' = 'google' then 'customer' else 'retailer' end
-  end)::user_role;
+  -- BIG Premium Cuts sells to customers only. Whatever role a sign-up asks for, it becomes a customer;
+  -- staff accounts are promoted to admin by the owner in the database.
+  v_role := 'customer';
 
   insert into profiles (
     id, role, full_name, phone, business_name, supplier_type,
@@ -55,11 +52,19 @@ create table if not exists public.customer_orders (
   notes text,
   status text not null default 'pending'
     check (status in ('pending', 'quoted', 'paid', 'delivered', 'cancelled')),
+  payment_method text not null default 'mpesa' check (payment_method in ('mpesa', 'cash_on_delivery')),
+  mpesa_checkout_id text,                     -- Safaricom's id for the payment prompt we sent
+  mpesa_receipt text,                         -- M-Pesa transaction code once paid
+  paid_at timestamptz,
   items_total_kes numeric(10,2) check (items_total_kes >= 0),   -- set by an admin when they confirm the price
   delivery_fee_kes numeric(10,2) check (delivery_fee_kes >= 0),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+alter table public.customer_orders add column if not exists payment_method text not null default 'mpesa' check (payment_method in ('mpesa', 'cash_on_delivery'));
+alter table public.customer_orders add column if not exists mpesa_checkout_id text;
+alter table public.customer_orders add column if not exists mpesa_receipt text;
+alter table public.customer_orders add column if not exists paid_at timestamptz;
 create index if not exists customer_orders_customer_idx on public.customer_orders (customer_id, created_at desc);
 create index if not exists customer_orders_status_idx on public.customer_orders (status, created_at desc);
 
@@ -70,7 +75,8 @@ create policy "customer_orders_select" on public.customer_orders for select to a
 -- No insert/update/delete policies on purpose: the functions below are the only way to change a row.
 
 -- 3. Functions
-create or replace function public.place_customer_order(p_items jsonb, p_address text, p_notes text default null)
+drop function if exists public.place_customer_order(jsonb, text, text);
+create or replace function public.place_customer_order(p_items jsonb, p_address text, p_notes text default null, p_payment_method text default 'mpesa')
 returns bigint language plpgsql security definer
 set search_path = public
 as $$
@@ -86,6 +92,9 @@ begin
   if jsonb_typeof(p_items) <> 'array' or jsonb_array_length(p_items) not between 1 and 30 then
     raise exception 'Add between 1 and 30 cuts to your order';
   end if;
+  if p_payment_method not in ('mpesa', 'cash_on_delivery') then
+    raise exception 'Choose how you will pay';
+  end if;
   if nullif(btrim(p_address), '') is null or length(p_address) > 300 then
     raise exception 'Enter a delivery address';
   end if;
@@ -97,8 +106,8 @@ begin
     v_clean := v_clean || jsonb_build_array(jsonb_build_object('name', v_name, 'kg', v_kg));
   end loop;
 
-  insert into customer_orders (customer_id, items, delivery_address, phone, notes)
-  values (v_uid, v_clean, btrim(p_address), (select phone from profiles where id = v_uid), nullif(btrim(left(p_notes, 500)), ''))
+  insert into customer_orders (customer_id, items, delivery_address, phone, notes, payment_method)
+  values (v_uid, v_clean, btrim(p_address), (select phone from profiles where id = v_uid), nullif(btrim(left(p_notes, 500)), ''), p_payment_method)
   returning id into v_id;
 
   for v_admin in select id from profiles where role = 'admin' loop
@@ -139,7 +148,7 @@ declare
 begin
   if not is_admin() then raise exception 'Only admins can do this' using errcode = '42501'; end if;
   if p_status not in ('paid', 'delivered', 'cancelled') then raise exception 'Invalid status'; end if;
-  update customer_orders set status = p_status, updated_at = now()
+  update customer_orders set status = p_status, updated_at = now(), paid_at = case when p_status = 'paid' then now() else paid_at end
    where id = p_order_id and status not in ('delivered', 'cancelled')
   returning * into v_o;
   if not found then raise exception 'This order is already closed'; end if;
@@ -162,14 +171,36 @@ begin
 end
 $$;
 
-revoke all on function public.place_customer_order(jsonb, text, text) from public, anon;
+revoke all on function public.place_customer_order(jsonb, text, text, text) from public, anon;
 revoke all on function public.admin_quote_customer_order(bigint, numeric, numeric) from public, anon;
 revoke all on function public.admin_set_customer_order_status(bigint, text) from public, anon;
 revoke all on function public.customer_cancel_order(bigint) from public, anon;
-grant execute on function public.place_customer_order(jsonb, text, text) to authenticated;
+grant execute on function public.place_customer_order(jsonb, text, text, text) to authenticated;
 grant execute on function public.admin_quote_customer_order(bigint, numeric, numeric) to authenticated;
 grant execute on function public.admin_set_customer_order_status(bigint, text) to authenticated;
 grant execute on function public.customer_cancel_order(bigint) to authenticated;
+
+-- Called by the M-Pesa callback (server, service key) when Safaricom confirms a payment. Customers and admins
+-- cannot call it, so a payment can only be recorded by the confirmation Safaricom sends.
+create or replace function public.mark_customer_order_paid(p_order_id bigint, p_receipt text, p_amount numeric)
+returns void language plpgsql security definer
+set search_path = public
+as $$
+declare
+  v_o customer_orders;
+begin
+  select * into v_o from customer_orders where id = p_order_id for update;
+  if not found or v_o.status <> 'quoted' then return; end if;
+  if p_amount < coalesce(v_o.items_total_kes, 0) + coalesce(v_o.delivery_fee_kes, 0) then
+    raise exception 'Amount paid is less than the order total';
+  end if;
+  update customer_orders set status = 'paid', mpesa_receipt = p_receipt, paid_at = now(), updated_at = now() where id = p_order_id;
+  perform notify(v_o.customer_id, 'customer_order', 'Payment received for order #' || p_order_id,
+    'M-Pesa code ' || p_receipt || '. We will deliver your order soon.', jsonb_build_object('customer_order_id', p_order_id), true);
+end
+$$;
+revoke all on function public.mark_customer_order_paid(bigint, text, numeric) from public, anon, authenticated;
+grant execute on function public.mark_customer_order_paid(bigint, text, numeric) to service_role;
 
 -- Live refresh of the order pages.
 do $$

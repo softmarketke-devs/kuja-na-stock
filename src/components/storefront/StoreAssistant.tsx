@@ -3,8 +3,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { clsx } from 'clsx'
 import { Bot, Send, X } from 'lucide-react'
-import { ALL_CUTS } from '@/lib/steak-map'
-import { priceFor } from '@/lib/catalogue'
 import { MAX_KG, MIN_KG, useCart } from '@/lib/cart'
 
 type Msg = { from: 'bot' | 'me'; text: string; action?: { label: string; run: 'cart' } }
@@ -20,7 +18,7 @@ const ALIASES: Record<string, string> = {
 
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9.\s-]/g, ' ').replace(/\s+/g, ' ').trim()
 
-function findCut(seg: string): string | null {
+function findCut(seg: string, names: string[]): string | null {
   const s = norm(seg)
   let best: string | null = null
   let bestLen = 0
@@ -30,8 +28,8 @@ function findCut(seg: string): string | null {
       bestLen = key.length
     }
   }
-  for (const c of ALL_CUTS) consider(norm(c), c)
-  for (const [k, c] of Object.entries(ALIASES)) consider(k, c)
+  for (const c of names) consider(norm(c), c)
+  for (const [k, c] of Object.entries(ALIASES)) if (names.includes(c)) consider(k, c)
   return best
 }
 
@@ -56,12 +54,18 @@ export function StoreAssistant() {
     endRef.current?.scrollIntoView({ block: 'end' })
   }, [msgs, open])
 
+  const names = cart.items.map((i) => i.name)
+  const priceOf = (n: string) => {
+    const v = cart.itemFor(n)?.price_per_kg
+    return v ? { perKg: v } : null
+  }
+
   const summary = () => {
     if (cart.lines.length === 0) return 'Your cart is empty.'
     let total = 0
     let allPriced = true
     const rows = cart.lines.map((l) => {
-      const p = priceFor(l.name)
+      const p = priceOf(l.name)
       if (p) total += p.perKg * l.kg
       else allPriced = false
       return `${kgText(l.kg)} ${l.name}${p ? ` (KSh ${(p.perKg * l.kg).toLocaleString('en-KE')})` : ''}`
@@ -87,31 +91,46 @@ export function StoreAssistant() {
     const segs = text.split(/,|\band\b|\+|&|\bna\b/i).filter((s) => s.trim())
     const done: string[] = []
     const asked: string[] = []
+    const issues: string[] = []
     for (const seg of segs) {
-      const cut = findCut(seg)
+      const cut = findCut(seg, names)
       if (!cut) continue
       if (asking) {
-        const p = priceFor(cut)
+        const p = priceOf(cut)
         asked.push(p ? `${cut} is KSh ${p.perKg.toLocaleString('en-KE')}/kg` : `${cut}: we confirm the price when you order`)
       } else if (removing) {
         cart.remove(cut)
         done.push(`removed ${cut}`)
       } else {
-        const kg = findKg(seg)
+        const stock = cart.itemFor(cut)?.stock_kg ?? 0
+        const inCart = cart.lines.find((l) => l.name === cut)?.kg ?? 0
+        const room = Math.floor((stock - inCart) / 0.5) * 0.5
+        if (stock < MIN_KG) {
+          issues.push(`${cut} is sold out`)
+          continue
+        }
+        if (room < MIN_KG) {
+          issues.push(`you already have all ${kgText(stock)} of ${cut} that we have`)
+          continue
+        }
+        const want = findKg(seg)
+        const kg = Math.min(want, room)
         cart.add(cut, kg)
         done.push(`added ${kgText(kg)} ${cut}`)
+        if (kg < want) issues.push(`we only have ${kgText(stock)} of ${cut}`)
       }
     }
     if (asked.length) return { from: 'bot', text: asked.join('. ') + '.' }
+    if (!done.length && issues.length) return { from: 'bot', text: `Sorry, ${issues.join(', ')}.` }
     if (done.length) {
       return {
         from: 'bot',
-        text: `Done: ${done.join(', ')}. Anything else? Say “checkout” when you are ready.`,
+        text: `Done: ${done.join(', ')}.${issues.length ? ` Note: ${issues.join(', ')}.` : ''} Anything else? Say “checkout” when you are ready.`,
         action: removing ? undefined : { label: 'View cart', run: 'cart' },
       }
     }
     if (/\b(hi|hello|hey|jambo|habari)\b/.test(t)) return { from: 'bot', text: 'Hello! What would you like to order today?' }
-    if (/\b(menu|cuts|what do you (have|sell)|available)\b/.test(t)) return { from: 'bot', text: `We have: ${ALL_CUTS.join(', ')}.` }
+    if (/\b(menu|cuts|what do you (have|sell)|available)\b/.test(t)) return { from: 'bot', text: cart.items.filter((i) => i.stock_kg >= MIN_KG).length ? `In stock now: ${cart.items.filter((i) => i.stock_kg >= MIN_KG).map((i) => i.name).join(', ')}.` : 'We are restocking right now. Please check back soon.' }
     if (/\b(deliver|delivery)\b/.test(t)) return { from: 'bot', text: 'Yes, we deliver. We confirm the fee and time when you send your order.' }
     return { from: 'bot', text: 'I did not catch a cut name. Try “2kg ribeye”, or say “menu” to see what we have.' }
   }

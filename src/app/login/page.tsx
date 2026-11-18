@@ -20,6 +20,11 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
 
   return (
     <AuthShell title="Sign in" subtitle="Know your cut, then order it right.">
+      {error === 'timeout' && (
+        <p role="alert" className="mb-4 text-sm text-slate-700 bg-orange-50 border border-orange-200 px-3 py-2">
+          You were signed out because you were away for a while. Sign in again to continue.
+        </p>
+      )}
       {error === 'confirm' && (
         <p role="alert" className="mb-4 text-sm text-red-700 bg-red-50 border border-red-200 px-3 py-2">
           That confirmation link is invalid or has expired. Sign in, or sign up again to get a new link.

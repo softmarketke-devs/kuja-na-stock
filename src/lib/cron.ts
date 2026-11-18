@@ -7,7 +7,7 @@ import { flushSmsOutbox } from './sms'
  * Runs a sweep function as the service role, then drains the SMS outbox.
  * Vercel Cron authenticates with `Authorization: Bearer $CRON_SECRET`.
  */
-export async function runSweep(request: NextRequest, fn: 'evening_sweep' | 'morning_sweep' | null) {
+export async function runSweep(request: NextRequest, fn: null) {
   const secret = process.env.CRON_SECRET
   if (!secret || request.headers.get('authorization') !== `Bearer ${secret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

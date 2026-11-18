@@ -5,7 +5,7 @@ import { BRAND_NAME, SUPPORT_EMAIL } from '@/lib/brand'
 
 export const metadata: Metadata = pageMetadata({
   title: 'Privacy policy',
-  description: `How ${BRAND_NAME} collects, uses and protects the personal data of butcheries, suppliers and carriers in Kenya.`,
+  description: `How ${BRAND_NAME} collects, uses and protects your personal data in Kenya.`,
   path: '/privacy',
 })
 
@@ -23,35 +23,33 @@ export default function PrivacyPage() {
       <section>
         <h2>2. What we collect</h2>
         <ul>
-          <li>Account details: name, business name, email, mobile number, role and password (stored hashed by our authentication provider).</li>
-          <li>Location: the address and coordinates you set for your butchery, pickup point or base. We use them to work out distances, delivery fees and which carriers to offer a run.</li>
-          <li>Carriers: meat transport permit number and expiry, vehicle registration, load capacity, and whether we have checked them.</li>
-          <li>Activity: orders, listings, stock counts, delivery runs, certificate of transport numbers, delivery codes, payment records (method and M-Pesa code, not card or PIN details) and problem reports.</li>
+          <li>Account details: name, email, mobile number and password (stored hashed by our sign-in provider). If you use Google sign-in, we receive your name and email from Google.</li>
+          <li>Orders: the cuts you order, delivery address, notes, prices and order status.</li>
+          <li>Payments: the method you chose and the M-Pesa transaction code. We never see your M-Pesa PIN or card details.</li>
           <li>Messages: the SMS we send you and whether it was delivered.</li>
         </ul>
       </section>
       <section>
         <h2>3. Why we use it</h2>
         <p>
-          To run the service you asked for: take and fulfil orders, match carriers, send SMS about your orders, remind
-          carriers before a permit expires, resolve problems, keep records, and keep the service safe. We do not sell
-          your data or use it for advertising.
+          To run the service you asked for: take and deliver your orders, confirm prices, take payment, send SMS about
+          your orders, resolve problems, keep records and keep the service safe. We do not sell your data or use it for
+          advertising.
         </p>
       </section>
       <section>
         <h2>4. Who sees it</h2>
         <ul>
-          <li>Other users on the same order or run see what they need to complete it: your business name, phone, address and location, and for carriers the permit and vehicle details. Suppliers&apos; business details are visible to signed-in users so butcheries can compare them.</li>
-          <li>Your delivery code is visible only to you, the butchery, and is entered by the carrier.</li>
-          <li>Service providers that process data for us: Supabase (database and sign-in), Vercel (hosting) and Africa&apos;s Talking (SMS). Some of them process data outside Kenya.</li>
+          <li>Our staff who prepare and deliver orders see your name, phone, address and order.</li>
+          <li>Service providers that process data for us: Supabase (database and sign-in), Vercel (hosting), Africa&apos;s Talking (SMS), Safaricom (M-Pesa) and Google (if you use Google sign-in). Some process data outside Kenya.</li>
           <li>Authorities, where the law requires.</li>
         </ul>
       </section>
       <section>
         <h2>5. How long we keep it</h2>
         <p>
-          While your account is active, and afterwards as long as needed for order, payment and compliance records.
-          Ask us to delete your account and we will, except for records we must keep.
+          While your account is active, and afterwards as long as needed for order, payment and legal records. Ask us to
+          delete your account and we will, except for records we must keep.
         </p>
       </section>
       <section>
@@ -64,9 +62,9 @@ export default function PrivacyPage() {
       <section>
         <h2>7. Security</h2>
         <p>
-          Access to data is restricted by role in the database, connections are encrypted, and the delivery code is
-          stored separately from order data. No system is perfectly secure; tell us at once if you think your account
-          has been misused.
+          Access to data is restricted by role in the database, connections are encrypted, and sessions end
+          automatically after a period of inactivity. No system is perfectly secure; tell us at once if you think your
+          account has been misused.
         </p>
       </section>
     </LegalPage>

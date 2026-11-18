@@ -4,7 +4,8 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { str } from '@/lib/actions'
-import { isKenyanMobile, nairobiDate, normalizePhone } from '@/lib/format'
+import { isKenyanMobile, normalizePhone } from '@/lib/format'
+import { touchSession } from '@/lib/session'
 import type { ActionResult } from '@/types'
 
 function safeNext(next: string) {
@@ -18,10 +19,11 @@ export async function signIn(_prev: ActionResult, formData: FormData): Promise<A
     password: str(formData, 'password'),
   })
   if (error) return { ok: false, error: error.message }
+  await touchSession()
   redirect(safeNext(str(formData, 'next')))
 }
 
-const COMMON_PASSWORDS = ['password', 'qwertyui', 'qwerty123', '12345678', '123456789', '1234567890', 'iloveyou', 'abc12345', 'kujanastock']
+const COMMON_PASSWORDS = ['password', 'qwertyui', 'qwerty123', '12345678', '123456789', '1234567890', 'iloveyou', 'abc12345', 'kujanastock', 'bigpremiumcuts']
 
 /** Returns why a password is too weak, or null. Supabase's own rules (dashboard) apply on top. */
 function weakPassword(password: string, email: string): string | null {
@@ -35,32 +37,16 @@ function weakPassword(password: string, email: string): string | null {
 }
 
 export async function signUp(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
-  const role = str(formData, 'role')
   const phone = str(formData, 'phone')
   const fullName = str(formData, 'full_name')
   const password = str(formData, 'password')
 
-  if (!['retailer', 'supplier', 'rider', 'customer'].includes(role)) return { ok: false, error: 'Choose an account type' }
   if (!fullName) return { ok: false, error: 'Enter your name' }
   if (!isKenyanMobile(phone)) {
     return { ok: false, error: 'Enter a Kenyan mobile number, e.g. 0712 345 678. We send order updates by SMS.' }
   }
   const weak = weakPassword(password, str(formData, 'email'))
   if (weak) return { ok: false, error: weak }
-
-  let carrier: Record<string, unknown> = {}
-  if (role === 'rider') {
-    const permitNo = str(formData, 'meat_permit_no')
-    const expiry = str(formData, 'meat_permit_expiry')
-    const vehicleReg = str(formData, 'vehicle_reg').toUpperCase()
-    const capacity = Number(str(formData, 'load_capacity_kg'))
-    if (!permitNo) return { ok: false, error: 'Enter your meat transport permit number' }
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(expiry)) return { ok: false, error: 'Enter the permit expiry date' }
-    if (expiry < nairobiDate()) return { ok: false, error: 'That permit has expired. Renew it before registering' }
-    if (!vehicleReg) return { ok: false, error: 'Enter your vehicle registration' }
-    if (!(capacity > 0 && capacity <= 5000)) return { ok: false, error: 'Load capacity must be between 1 and 5000 kg' }
-    carrier = { meat_permit_no: permitNo, meat_permit_expiry: expiry, vehicle_reg: vehicleReg, load_capacity_kg: capacity }
-  }
 
   // Public address the confirmation link should open. Falls back to the
   // address the form was submitted from (localhost in dev).
@@ -72,12 +58,9 @@ export async function signUp(_prev: ActionResult, formData: FormData): Promise<A
     options: {
       emailRedirectTo: `${origin}/auth/confirm`,
       data: {
-        role,
+        role: 'customer', // the only public account type; staff accounts are made by the owner
         full_name: fullName,
         phone: normalizePhone(phone),
-        business_name: str(formData, 'business_name') || null,
-        supplier_type: role === 'supplier' ? str(formData, 'supplier_type') || 'wholesaler' : null,
-        ...carrier,
       },
     },
   })
@@ -90,6 +73,7 @@ export async function signUp(_prev: ActionResult, formData: FormData): Promise<A
   if (!data.session) {
     return { ok: true, message: 'Check your email and tap the confirmation link to finish signing up.' }
   }
+  await touchSession()
   redirect('/dashboard/settings?welcome=1')
 }
 
@@ -138,6 +122,7 @@ export async function updatePassword(_prev: ActionResult, formData: FormData): P
   if (weak) return { ok: false, error: weak }
   const { error } = await supabase.auth.updateUser({ password })
   if (error) return { ok: false, error: error.message }
+  await touchSession()
   redirect('/dashboard')
 }
 

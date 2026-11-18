@@ -2,21 +2,18 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { BRAND_NAME, BRAND_TAGLINE, INSTAGRAM_URL, SITE_URL, SUPPORT_WHATSAPP } from '@/lib/brand'
 import { SocialLinks } from '@/components/SocialLinks'
-import { ALL_CUTS, FEATURED } from '@/lib/steak-map'
-import { priceFor } from '@/lib/catalogue'
+import { getShopItems } from '@/lib/shop'
 import { SteakMap } from '@/components/landing/SteakMap'
 import { AccountMenu } from '@/components/AccountMenu'
 import { HeaderActions } from '@/components/storefront/HeaderActions'
 import { AddToCart } from '@/components/storefront/AddToCart'
 import { CartProvider } from '@/lib/cart'
 import { StoreAssistant } from '@/components/storefront/StoreAssistant'
+import { IdleGuard } from '@/components/IdleGuard'
 import { getProfile } from '@/lib/auth'
 
 const wa = (text: string) => `https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(`Hello ${BRAND_NAME}, ${text}`)}`
-const price = (name: string) => {
-  const p = priceFor(name)
-  return p ? `KSh ${p.perKg.toLocaleString('en-KE')}/kg` : 'Ask for price'
-}
+const price = (perKg: number | null) => (perKg ? `KSh ${perKg.toLocaleString('en-KE')}/kg` : 'Price on confirmation')
 
 const FAQ = [
   { q: 'How do I order?', a: 'Create a customer account, add your cuts to the cart and place the order with your delivery address. We confirm the final price and delivery time. You can also send your cart to us on WhatsApp. Paying in the app is coming.' },
@@ -34,9 +31,10 @@ const ORG_JSON_LD = {
 }
 
 export default async function Home() {
-  const profile = await getProfile()
+  const [profile, items] = await Promise.all([getProfile(), getShopItems()])
+  const featured = items.filter((i) => i.image).slice(0, 5)
   return (
-    <CartProvider>
+    <CartProvider items={items}>
     <div className="min-h-screen flex flex-col">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_JSON_LD).replace(/</g, '\\u003c') }} />
 
@@ -75,31 +73,37 @@ export default async function Home() {
             <p className="text-slate-500 max-w-[34em] mb-7">
               Add cuts to your cart and place the order in the app with a customer account, or send the cart to us on WhatsApp. We confirm the price and delivery. Prices move with the market. Paying in the app is coming next.
             </p>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
-              {FEATURED.map((f) => (
-                <figure key={f.name} className="m-0">
-                  <Image src={f.image} alt={f.name} width={560} height={420} className="w-full aspect-[4/3] object-cover rounded-sm" />
-                  <h3 className="font-display font-semibold text-[19px] mt-2.5">{f.name}</h3>
-                  <p className="text-sm text-slate-500">{f.blurb}</p>
-                  <p className="text-sm font-semibold text-orange-600">{price(f.name)}</p>
-                  <div className="mt-2"><AddToCart name={f.name} /></div>
-                </figure>
-              ))}
-            </div>
-            <details className="mt-6 border-t border-slate-200 pt-3">
-              <summary className="font-display font-semibold text-lg cursor-pointer">See all our cuts</summary>
-              <div className="mt-3 md:columns-2 gap-10">
-                {ALL_CUTS.map((n) => (
-                  <div key={n} className="break-inside-avoid flex justify-between gap-3 py-2 border-b border-slate-200 text-[15px]">
-                    <span>
-                      {n}
-                      {priceFor(n) && <small className="block text-slate-500">{price(n)}</small>}
-                    </span>
-                    <AddToCart name={n} />
+            {items.length === 0 ? (
+              <p className="text-slate-500">We are restocking. Please check back soon, or message us on WhatsApp.</p>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
+                  {featured.map((f) => (
+                    <figure key={f.id} className="m-0">
+                      <Image src={f.image!} alt={f.name} width={560} height={420} className="w-full aspect-[4/3] object-cover rounded-sm" />
+                      <h3 className="font-display font-semibold text-[19px] mt-2.5">{f.name}</h3>
+                      {f.blurb && <p className="text-sm text-slate-500">{f.blurb}</p>}
+                      <p className="text-sm font-semibold text-orange-600">{price(f.price_per_kg)}</p>
+                      <div className="mt-2"><AddToCart name={f.name} /></div>
+                    </figure>
+                  ))}
+                </div>
+                <details className="mt-6 border-t border-slate-200 pt-3" open={featured.length === 0}>
+                  <summary className="font-display font-semibold text-lg cursor-pointer">See all our cuts</summary>
+                  <div className="mt-3 md:columns-2 gap-10">
+                    {items.map((i) => (
+                      <div key={i.id} className="break-inside-avoid flex justify-between gap-3 py-2 border-b border-slate-200 text-[15px]">
+                        <span>
+                          {i.name}
+                          <small className="block text-slate-500">{price(i.price_per_kg)}</small>
+                        </span>
+                        <AddToCart name={i.name} />
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </details>
+                </details>
+              </>
+            )}
           </div>
         </section>
 
@@ -129,6 +133,7 @@ export default async function Home() {
           </div>
         </div>
       </footer>
+      {profile && <IdleGuard isAdmin={profile.role === 'admin'} />}
       <StoreAssistant />
     </div>
     </CartProvider>

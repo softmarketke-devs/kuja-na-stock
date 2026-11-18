@@ -84,16 +84,18 @@ export function SubmitButton({
   name,
   value,
   pendingText = 'Working…',
+  disabled = false,
 }: {
   children: React.ReactNode
   className?: string
   name?: string
   value?: string
   pendingText?: string
+  disabled?: boolean
 }) {
   const pending = useContext(PendingContext)
   return (
-    <button type="submit" name={name} value={value} disabled={pending} className={clsx(className)}>
+    <button type="submit" name={name} value={value} disabled={pending || disabled} className={clsx(className)}>
       {pending ? pendingText : children}
     </button>
   )

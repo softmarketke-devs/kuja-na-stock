@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { clsx } from 'clsx'
-import { ClipboardList, History, Package, ShieldCheck, ShoppingBag, ShoppingCart, Store, Truck, UserRound, type LucideIcon } from 'lucide-react'
+import { Package, ShoppingBag, UserRound, type LucideIcon } from 'lucide-react'
 import type { UserRole } from '@/types'
 
 type NavItem = { href: string; label: string; icon: LucideIcon }
@@ -11,21 +11,9 @@ type NavItem = { href: string; label: string; icon: LucideIcon }
 const SETTINGS: NavItem = { href: '/dashboard/settings', label: 'Account', icon: UserRound }
 
 const NAV: Record<UserRole, NavItem[]> = {
-  retailer: [
-    { href: '/dashboard/retailer', label: 'My butchery', icon: Store },
-    { href: '/dashboard/retailer/order', label: 'Order', icon: ShoppingCart },
-    { href: '/dashboard/retailer/history', label: 'History', icon: History },
-    SETTINGS,
-  ],
-  supplier: [
-    { href: '/dashboard/supplier', label: 'Orders', icon: ClipboardList },
-    { href: '/dashboard/supplier/listings', label: 'Listings', icon: Package },
-    SETTINGS,
-  ],
-  rider: [{ href: '/dashboard/rider', label: 'My runs', icon: Truck }, SETTINGS],
   admin: [
-    { href: '/dashboard/admin', label: 'Permits', icon: ShieldCheck },
-    { href: '/dashboard/admin/customer-orders', label: 'Customer orders', icon: ShoppingBag },
+    { href: '/dashboard/admin/customer-orders', label: 'Orders', icon: ShoppingBag },
+    { href: '/dashboard/admin/stock', label: 'Stock', icon: Package },
     SETTINGS,
   ],
   customer: [{ href: '/dashboard/customer', label: 'My orders', icon: ShoppingBag }, SETTINGS],
@@ -40,7 +28,7 @@ function activeHref(items: NavItem[], pathname: string) {
 
 export function DashboardNav({ role }: { role: UserRole }) {
   const pathname = usePathname()
-  const items = NAV[role]
+  const items = NAV[role] ?? NAV.customer
   const active = activeHref(items, pathname)
 
   return (

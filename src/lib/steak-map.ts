@@ -30,16 +30,3 @@ export const HOTSPOTS: [string, number, number, number][] = [
   ['Flank', 5, 43, 72.6],
   ['Plate', 6, 51.3, 72.1],
 ]
-
-export const FEATURED: { name: string; blurb: string; image: string }[] = [
-  { name: 'Tomahawk', blurb: 'Bone-in ribeye, the showpiece.', image: '/cuts/tomahawk.jpg' },
-  { name: 'Sirloin on Bone', blurb: 'Dry-aged, bone-in.', image: '/cuts/sirloin-on-bone.jpg' },
-  { name: 'Oxtail', blurb: 'Our best seller.', image: '/cuts/oxtail.jpg' },
-  { name: 'Mutura', blurb: 'Grilled Kenyan sausage, sold as a 1 kg pack.', image: '/cuts/mutura.png' },
-  { name: 'The Steak Bundle', blurb: 'Tomahawk, T-bone and cowboy rib.', image: '/cuts/the-steak-bundle.jpg' },
-]
-
-export const ALL_CUTS = [
-  'Tomahawk', 'Cowboy Rib', 'T-bone', 'Sirloin on Bone', 'Ribeye', 'Fillet', 'Oxtail', 'Short Ribs', 'Brisket', 'Shank',
-  'Osso Buco', 'Stew Cuts', 'Chunk', 'Minced Meat', 'Liver', 'Kidney', 'Heart', 'Mutura', 'Pork Rib-eye Chops', 'Whole Rabbit', 'The Steak Bundle',
-]

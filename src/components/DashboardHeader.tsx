@@ -7,9 +7,6 @@ import { BRAND_NAME } from '@/lib/brand'
 import type { Profile, UserRole } from '@/types'
 
 const ROLE_LABEL: Record<UserRole, string> = {
-  retailer: 'Retailer',
-  supplier: 'Supplier',
-  rider: 'Meat carrier',
   admin: 'Admin',
   customer: 'Customer',
 }
@@ -19,7 +16,7 @@ export function DashboardHeader({
   profile,
   unread,
 }: {
-  profile: Pick<Profile, 'role' | 'business_name' | 'full_name'>
+  profile: Pick<Profile, 'role' | 'full_name'>
   unread: number
 }) {
   return (
@@ -29,9 +26,9 @@ export function DashboardHeader({
             <Image src="/brand/big-logo.png" alt={BRAND_NAME} width={44} height={44} className="h-11 w-auto shrink-0" />
             <div className="min-w-0">
               <div className="font-display text-base font-semibold leading-tight truncate">
-                {profile.business_name || profile.full_name || BRAND_NAME}
+                {profile.full_name || BRAND_NAME}
               </div>
-              <div className="text-xs text-[#c8a25a] font-semibold tracking-wide">{ROLE_LABEL[profile.role]}</div>
+              <div className="text-xs text-[#c8a25a] font-semibold tracking-wide">{ROLE_LABEL[profile.role] ?? 'Customer'}</div>
             </div>
           </Link>
           <div className="flex items-center gap-1 shrink-0">

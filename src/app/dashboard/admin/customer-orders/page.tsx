@@ -36,7 +36,7 @@ export default async function CustomerOrdersAdmin() {
           <input type="hidden" name="order_id" value={o.id} />
           <div>
             <label className={labelClass} htmlFor={`t${o.id}`}>Cuts total (KSh)</label>
-            <input id={`t${o.id}`} name="items_total" type="number" min={1} step="1" required defaultValue={o.items_total_kes ?? ''} className={inputClass} />
+            <input id={`t${o.id}`} name="items_total" type="number" min={1} step="1" required defaultValue={o.items_total_kes ?? o.estimated_total_kes ?? ''} className={inputClass} />
           </div>
           <div>
             <label className={labelClass} htmlFor={`f${o.id}`}>Delivery (KSh)</label>

@@ -42,6 +42,10 @@ export function CustomerOrderCard({ order, heading, children }: { order: Custome
       ) : (
         <p className="text-sm text-slate-500">We are confirming the price and delivery for your order.</p>
       )}
+      <p className="text-sm text-slate-600">
+        Payment: {order.payment_method === 'mpesa' ? 'M-Pesa' : 'Pay on delivery'}
+        {order.mpesa_receipt ? ` · code ${order.mpesa_receipt}` : ''}
+      </p>
       {children}
     </Card>
   )

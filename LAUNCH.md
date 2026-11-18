@@ -32,7 +32,7 @@ Order matters: name and domain first (everything else hangs off them), then veri
    `CRON_SECRET` and `AT_*` as Sensitive with no public prefix. Add `NEXT_PUBLIC_SUPPORT_PHONE`/`_WHATSAPP`.
    Do not run `vercel env pull` over `.env.local` until Vercel has the right values: it overwrote the working key once.
 
-1. **Choose the name.** "Kuja Na Stock" came from the produce/kiosk version. Check domain, trademark (KIPI) and
+1. **Choose the name.** The old name "Kuja Na Stock" came from the produce/kiosk version and has been replaced by "BIG Premium Cuts". Check domain, trademark (KIPI) and
    social handles before committing. Do this before buying the domain or registering the SMS sender ID.
 2. **Wire the production URL** `https://kuja-na-stock.vercel.app`: in Vercel set `NEXT_PUBLIC_SITE_URL` to it, and in
    Supabase → Authentication → URL Configuration set Site URL to it and add `https://kuja-na-stock.vercel.app/auth/confirm`
@@ -134,7 +134,7 @@ Still to do:
 ## Renaming checklist
 
 Code: edit `src/lib/brand.ts`.
-The SMS prefix `'KNS: '` inside `notify()` in `supabase/schema.sql` (also the Postgres side of the name).
+The SMS prefix (now `'BIG: '`) inside `notify()` in `supabase/schema.sql` and `supabase/migrations/20261116c_sms_prefix.sql` (also the Postgres side of the name).
 Static files that cannot import it: `public/manifest.json`, `public/offline.html`, `public/sw.js`
 (cache name `kuja-na-stock-v2`: bump it so old caches are dropped), the icons and `public/logo.*`.
 Outside the repo: GitHub repo name, Vercel project, Supabase project name, SMS sender ID, email templates in

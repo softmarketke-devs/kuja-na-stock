@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useCallback, useContext, useMemo, useState, useSyncExternalStore } from 'react'
+import type { ShopItem } from '@/types'
 
 export interface CartLine {
   name: string
@@ -65,6 +66,9 @@ function subscribe(l: () => void) {
 }
 
 interface CartApi {
+  /** The cuts on sale, with price and kilos in stock. */
+  items: ShopItem[]
+  itemFor: (name: string) => ShopItem | undefined
   lines: CartLine[]
   count: number
   add: (name: string, kg?: number) => void
@@ -80,22 +84,39 @@ interface CartApi {
 
 const Ctx = createContext<CartApi | null>(null)
 
-export function CartProvider({ children }: { children: React.ReactNode }) {
+export function CartProvider({ children, items }: { children: React.ReactNode; items: ShopItem[] }) {
   const lines = useSyncExternalStore(subscribe, read, () => EMPTY)
   const [cartOpen, setCartOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
 
-  const add = useCallback((name: string, kg = 1) => {
-    const cur = read()
-    const found = cur.find((l) => l.name === name)
-    write(found ? cur.map((l) => (l.name === name ? { ...l, kg: clampKg(l.kg + kg) } : l)) : [...cur, { name, kg: clampKg(kg) }])
-  }, [])
-  const setKg = useCallback((name: string, kg: number) => write(read().map((l) => (l.name === name ? { ...l, kg: clampKg(kg) } : l))), [])
+  const itemFor = useCallback((name: string) => items.find((i) => i.name === name), [items])
+  // The most of a cut that can be in the cart: what is in stock, in half-kilo steps, never above MAX_KG.
+  const maxFor = useCallback(
+    (name: string) => Math.min(MAX_KG, Math.floor((itemFor(name)?.stock_kg ?? 0) / STEP) * STEP),
+    [itemFor],
+  )
+  const add = useCallback(
+    (name: string, kg = 1) => {
+      const max = maxFor(name)
+      if (max < MIN_KG) return // sold out or not on sale
+      const cur = read()
+      const found = cur.find((l) => l.name === name)
+      const next = Math.min(max, clampKg((found?.kg ?? 0) + kg))
+      write(found ? cur.map((l) => (l.name === name ? { ...l, kg: next } : l)) : [...cur, { name, kg: next }])
+    },
+    [maxFor],
+  )
+  const setKg = useCallback(
+    (name: string, kg: number) => write(read().map((l) => (l.name === name ? { ...l, kg: Math.min(Math.max(maxFor(name), MIN_KG), clampKg(kg)) } : l))),
+    [maxFor],
+  )
   const remove = useCallback((name: string) => write(read().filter((l) => l.name !== name)), [])
   const clear = useCallback(() => write([]), [])
 
   const value = useMemo<CartApi>(
     () => ({
+      items,
+      itemFor,
       lines,
       count: lines.length,
       add,
@@ -117,7 +138,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         setSearchOpen(false)
       },
     }),
-    [lines, add, setKg, remove, clear, cartOpen, searchOpen],
+    [items, itemFor, lines, add, setKg, remove, clear, cartOpen, searchOpen],
   )
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>

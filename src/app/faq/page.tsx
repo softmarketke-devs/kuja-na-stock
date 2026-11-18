@@ -3,54 +3,41 @@ import { ContactButtons } from '@/components/ContactButtons'
 import { LegalPage } from '@/components/LegalPage'
 import { pageMetadata } from '@/lib/seo'
 import { BRAND_NAME } from '@/lib/brand'
-import { DELIVERY_WINDOW, FEE_PER_KM, ISSUE_REPORT_HOURS, MIN_DELIVERY_FEE, ORDER_CUTOFF_HOUR } from '@/lib/constants'
 
 export const metadata: Metadata = pageMetadata({
   title: 'FAQs',
-  description: `Answers for Nairobi butcheries, slaughterhouses, meat wholesalers and carriers using ${BRAND_NAME}: ordering, delivery fees, payment and problems.`,
+  description: `Answers about ordering premium cuts from ${BRAND_NAME}: how to order, delivery, payment and problems.`,
   path: '/faq',
 })
 
 const FAQS: { q: string; a: string }[] = [
   {
-    q: 'Who is this for?',
-    a: 'Butcheries that buy meat, slaughterhouses and meat wholesalers that sell it, and licensed meat carriers that deliver it. Every account is a business.',
+    q: 'How do I order?',
+    a: 'Create a customer account, add cuts to your cart and place the order with your delivery address. We confirm the final price and delivery, then you pay. You can also send your cart to us on WhatsApp.',
   },
   {
-    q: 'By what time must I order?',
-    a: `Before ${ORDER_CUTOFF_HOUR}:00 Nairobi time for delivery tomorrow morning, between ${DELIVERY_WINDOW}. After ${ORDER_CUTOFF_HOUR}:00 it is for the day after.`,
+    q: 'Do I need an account?',
+    a: 'To order in the app, yes. It lets you track your orders and pay. Without one, you can message us on WhatsApp.',
   },
   {
-    q: 'What if my supplier does not confirm?',
-    a: 'Unconfirmed orders are cancelled at 03:30 on the delivery day and you get an SMS, so you can arrange stock another way. A supplier can also decline an order, and you are told why.',
+    q: 'Which cuts do you sell?',
+    a: 'Steaks, ribs, offal, mutura and more. See the list on the home page or use the search. Prices are per kilogram and we confirm them when you order.',
   },
   {
     q: 'How much is delivery?',
-    a: `KSh ${FEE_PER_KM} per road-kilometre, minimum KSh ${MIN_DELIVERY_FEE}. It is shown with each supplier's price before you order, so you can compare the full cost.`,
+    a: 'It depends on where you are. We confirm the delivery fee together with the price before you pay.',
   },
   {
     q: 'How do I pay?',
-    a: 'You pay the carrier on delivery, in cash or by M-Pesa. Online payment is planned but not available yet.',
+    a: 'You choose at checkout: M-Pesa, or pay on delivery. You only pay after we have confirmed the price.',
   },
   {
-    q: 'How do I know the carrier is licensed?',
-    a: 'Carriers record their meat transport permit and vehicle, and we check them before they can take any run. They must also enter the certificate of transport number at pickup.',
+    q: 'Can I change or cancel my order?',
+    a: 'You can cancel it yourself from My orders until it is paid. After that, message us and we will help.',
   },
   {
-    q: 'What is the 4-digit code?',
-    a: 'We SMS it to you when the carrier picks up. Give it to the carrier only after you have checked the weight and the inspection stamp. It proves you accepted the delivery.',
-  },
-  {
-    q: 'What if the meat is short or not good?',
-    a: `Report it in the app within ${ISSUE_REPORT_HOURS} hours of delivery. The supplier is notified and records how they resolved it.`,
-  },
-  {
-    q: 'Which cuts can I order?',
-    a: 'Beef, goat and mutton, offal and carcass cuts, all priced per kilogram. Search or filter by section on the order screen. Suppliers decide what they list.',
-  },
-  {
-    q: 'Can I ask for a particular cut size or trim?',
-    a: 'Yes. Add a note to your order, for example "thin cut" or "trimmed". The supplier sees it with your order.',
+    q: 'Something was wrong with my order. What now?',
+    a: 'Message us on WhatsApp with your order number and a photo. We will put it right.',
   },
 ]
 

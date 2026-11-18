@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the Kuja Na Stock (KNS) platform will be documented in this file.
+All notable changes to the BIG Premium Cuts platform will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -37,11 +37,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.6.0] - 2026-10-03
 
-Changed focus from fresh-produce retailers to butcheries. Kuja Na Stock is a B2B meat logistics platform: butcheries buy, slaughterhouses and wholesalers sell, licensed meat carriers deliver.
+Changed focus from fresh-produce retailers to butcheries. BIG Premium Cuts is a B2B meat logistics platform: butcheries buy, slaughterhouses and wholesalers sell, licensed meat carriers deliver.
 
 ### Added
 - Carriers register their meat transport permit number and expiry, vehicle registration and load capacity (kg) once, at signup. Signup rejects an already-expired permit.
-- Account page (formerly Settings) shows the carrier's permit status: valid, expiring within 30 days, expired, or not recorded, plus whether Kuja Na Stock has checked it.
+- Account page (formerly Settings) shows the carrier's permit status: valid, expiring within 30 days, expired, or not recorded, plus whether BIG Premium Cuts has checked it.
 - Evening sweep sends permit reminders 30 and 7 days before expiry and on the expiry date.
 - Suppliers see the booked carrier's vehicle, permit status and certificate of transport number.
 - Carriers are only offered, and can only accept or be assigned, runs when their permit is recorded and valid on the run date and the run's weight fits their load capacity (`carrier_block_reason`, `run_load_kg`).
