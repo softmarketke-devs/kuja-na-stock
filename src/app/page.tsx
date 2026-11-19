@@ -2,7 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { BRAND_NAME, BRAND_TAGLINE, INSTAGRAM_URL, SITE_URL, SUPPORT_WHATSAPP } from '@/lib/brand'
 import { SocialLinks } from '@/components/SocialLinks'
-import { getShopItems } from '@/lib/shop'
+import { getDeliveryFee, getShopItems } from '@/lib/shop'
 import { SteakMap } from '@/components/landing/SteakMap'
 import { AccountMenu } from '@/components/AccountMenu'
 import { HeaderActions } from '@/components/storefront/HeaderActions'
@@ -16,7 +16,7 @@ const wa = (text: string) => `https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURI
 const price = (perKg: number | null) => (perKg ? `KSh ${perKg.toLocaleString('en-KE')}/kg` : 'Price on confirmation')
 
 const FAQ = [
-  { q: 'How do I order?', a: 'Create a customer account, add your cuts to the cart and place the order with your delivery address. We confirm the final price and delivery time. You can also send your cart to us on WhatsApp. Paying in the app is coming.' },
+  { q: 'How do I order?', a: 'Create a customer account, add your cuts to the cart and place the order with your delivery address. When every cut in your order has a price, you see the total straight away and can pay. You can also send your cart to us on WhatsApp.' },
   { q: 'Do you deliver?', a: 'Yes. Tell us your area in your message and we’ll confirm the fee and timing.' },
 ]
 
@@ -31,10 +31,10 @@ const ORG_JSON_LD = {
 }
 
 export default async function Home() {
-  const [profile, items] = await Promise.all([getProfile(), getShopItems()])
+  const [profile, items, deliveryFee] = await Promise.all([getProfile(), getShopItems(), getDeliveryFee()])
   const featured = items.filter((i) => i.image).slice(0, 5)
   return (
-    <CartProvider items={items}>
+    <CartProvider items={items} deliveryFee={deliveryFee}>
     <div className="min-h-screen flex flex-col">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_JSON_LD).replace(/</g, '\\u003c') }} />
 
@@ -71,7 +71,7 @@ export default async function Home() {
           <div className="max-w-[1160px] mx-auto px-5">
             <h2 className="font-display font-bold text-[clamp(28px,3.4vw,40px)] leading-tight mb-2">Order your cuts</h2>
             <p className="text-slate-500 max-w-[34em] mb-7">
-              Add cuts to your cart and place the order in the app with a customer account, or send the cart to us on WhatsApp. We confirm the price and delivery. Prices move with the market. Paying in the app is coming next.
+              Add cuts to your cart and place the order in the app with a customer account, or send the cart to us on WhatsApp. Prices are per kilogram and may change with the market.
             </p>
             {items.length === 0 ? (
               <p className="text-slate-500">We are restocking. Please check back soon, or message us on WhatsApp.</p>

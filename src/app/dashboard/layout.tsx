@@ -27,7 +27,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
       <main className="rise-in flex-1 max-w-5xl w-full mx-auto px-4 pt-6 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:pb-8">{children}</main>
       <IdleGuard isAdmin={profile.role === 'admin'} />
-      <LiveRefresh tables={LIVE_TABLES[profile.role]} userId={profile.id} />
+      <LiveRefresh tables={(LIVE_TABLES[profile.role] ?? LIVE_TABLES.customer)} userId={profile.id} />
     </div>
   )
 }

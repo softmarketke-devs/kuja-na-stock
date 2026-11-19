@@ -16,7 +16,7 @@ export default function DeliveryAndPaymentPage() {
         <h2>How an order works</h2>
         <ul>
           <li>Add cuts to your cart and place the order with your delivery address.</li>
-          <li>We confirm the price of your cuts and the delivery fee. You get an SMS and see it under My orders.</li>
+          <li>If every cut has a price, your total (cuts plus the standard delivery fee) is ready straight away under My orders. If a cut has no price yet, we confirm it and tell you by SMS.</li>
           <li>You pay with the method you chose, or on delivery.</li>
           <li>We deliver, sealed, and mark the order delivered.</li>
         </ul>
@@ -24,16 +24,16 @@ export default function DeliveryAndPaymentPage() {
       <section>
         <h2>Delivery</h2>
         <p>
-          The delivery fee depends on your address and is confirmed with the price, before you pay. We tell you the
-          delivery time when we confirm.
+          One standard delivery fee applies to each order, shown in your cart before you order. We tell you the delivery
+          time when we confirm your order.
         </p>
       </section>
       <section>
         <h2>Payment</h2>
         <ul>
-          <li>M-Pesa: you get a payment prompt on your phone once the price is confirmed.</li>
+          <li>M-Pesa: you get a payment prompt on your phone once the price is ready.</li>
           <li>Pay on delivery: pay in cash or by M-Pesa when the meat arrives.</li>
-          <li>You are never charged before we have confirmed the price.</li>
+          <li>You are never charged before the price is shown to you.</li>
         </ul>
       </section>
       <section>

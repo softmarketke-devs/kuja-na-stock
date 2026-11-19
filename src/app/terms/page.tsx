@@ -30,8 +30,8 @@ export default function TermsPage() {
       <section>
         <h2>3. Orders and prices</h2>
         <ul>
-          <li>Prices are per kilogram. Because weights vary, we confirm the price of your order and the delivery fee before you pay.</li>
-          <li>An order is accepted when we confirm its price. We may decline or cancel an order, for example when a cut is out of stock, and we will tell you.</li>
+          <li>Prices are per kilogram and may change; the price shown when you place the order is the price you pay. Where a cut has no price yet, we confirm it with you before you pay. Delivery is one standard fee per order.</li>
+          <li>We may decline or cancel an order, for example when a cut cannot be supplied, and we will tell you and refund anything you paid.</li>
           <li>You can cancel an order yourself until it is paid. After that, contact us.</li>
         </ul>
       </section>

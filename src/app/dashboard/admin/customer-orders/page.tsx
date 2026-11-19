@@ -77,7 +77,7 @@ export default async function CustomerOrdersAdmin() {
     <div className="space-y-6">
       <h1 className="font-display text-2xl font-bold">Customer orders</h1>
       <p className="text-sm text-slate-600 max-w-2xl">
-        Customers order cuts without prices. Work out the cuts total and delivery fee, send the price, and the customer is told by SMS.
+        Orders are priced automatically from your stock prices and standard delivery fee, so customers can pay straight away. You only need to act on orders marked &quot;Waiting for price&quot; (a cut had no price, or no delivery fee is set). You can also change any open order&apos;s price here; the customer is told by SMS.
       </p>
       <SectionTitle>Open ({open.length})</SectionTitle>
       {open.length === 0 ? <Empty>No open customer orders.</Empty> : <div className="grid gap-4 md:grid-cols-2">{open.map(card)}</div>}

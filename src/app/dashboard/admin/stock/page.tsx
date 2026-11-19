@@ -1,6 +1,7 @@
 import { requireProfile } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
-import { saveShopItem } from '@/app/actions/shop'
+import { saveDeliveryFee, saveShopItem } from '@/app/actions/shop'
+import { getDeliveryFee } from '@/lib/shop'
 import { ActionForm, SubmitButton } from '@/components/ActionForm'
 import { Badge, Card, SectionTitle, inputClass, labelClass } from '@/components/ui'
 import type { ShopItem } from '@/types'
@@ -11,6 +12,7 @@ export default async function StockPage() {
   // Admins can read every cut, including the ones switched off.
   const { data } = await supabase.from('shop_items').select('id, name, blurb, image, price_per_kg, stock_kg, is_active').order('sort_order').order('name')
   const items = (data ?? []) as ShopItem[]
+  const fee = await getDeliveryFee()
 
   return (
     <div className="space-y-6">
@@ -19,6 +21,22 @@ export default async function StockPage() {
         This is what customers can buy. A cut shows on the website only when it is switched on and has a price. When the
         kilos reach 0 it shows as sold out, and orders take kilos off automatically (a cancelled order puts them back).
       </p>
+
+      <SectionTitle>Delivery fee</SectionTitle>
+      <Card className="p-4 space-y-2">
+        <p className="text-sm text-slate-600">
+          One standard fee for every order. While it is set and a cut has a price, orders are priced the moment they are
+          placed and the customer can pay straight away. You can still change any order&apos;s price on the Orders page.
+          {fee === null && <strong className="block text-red-700">Not set yet: until you set it, every order waits for you to price it.</strong>}
+        </p>
+        <ActionForm action={saveDeliveryFee} className="flex items-end gap-2">
+          <div className="flex-1">
+            <label className={labelClass} htmlFor="fee">Delivery fee (KSh)</label>
+            <input id="fee" name="fee" type="number" min={0} step="1" required defaultValue={fee ?? ''} className={inputClass} />
+          </div>
+          <SubmitButton pendingText="Saving…">Save</SubmitButton>
+        </ActionForm>
+      </Card>
 
       <SectionTitle>Add a cut</SectionTitle>
       <Card className="p-4">

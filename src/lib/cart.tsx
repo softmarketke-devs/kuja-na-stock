@@ -66,6 +66,8 @@ function subscribe(l: () => void) {
 }
 
 interface CartApi {
+  /** Standard delivery fee in KSh, or null when the shop has not set one. */
+  deliveryFee: number | null
   /** The cuts on sale, with price and kilos in stock. */
   items: ShopItem[]
   itemFor: (name: string) => ShopItem | undefined
@@ -84,7 +86,7 @@ interface CartApi {
 
 const Ctx = createContext<CartApi | null>(null)
 
-export function CartProvider({ children, items }: { children: React.ReactNode; items: ShopItem[] }) {
+export function CartProvider({ children, items, deliveryFee = null }: { children: React.ReactNode; items: ShopItem[]; deliveryFee?: number | null }) {
   const lines = useSyncExternalStore(subscribe, read, () => EMPTY)
   const [cartOpen, setCartOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
@@ -115,6 +117,7 @@ export function CartProvider({ children, items }: { children: React.ReactNode; i
 
   const value = useMemo<CartApi>(
     () => ({
+      deliveryFee,
       items,
       itemFor,
       lines,
@@ -138,7 +141,7 @@ export function CartProvider({ children, items }: { children: React.ReactNode; i
         setSearchOpen(false)
       },
     }),
-    [items, itemFor, lines, add, setKg, remove, clear, cartOpen, searchOpen],
+    [deliveryFee, items, itemFor, lines, add, setKg, remove, clear, cartOpen, searchOpen],
   )
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>

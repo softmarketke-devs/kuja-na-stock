@@ -20,7 +20,10 @@ export async function placeCustomerOrder(_prev: ActionResult, formData: FormData
       p_notes: str(formData, 'notes') || null,
       p_payment_method: str(formData, 'payment_method') || 'mpesa',
     })
-    return `Order #${id} sent. We confirm the price and delivery next, and you pay once it is confirmed.`
+    const { data: order } = await supabase.from('customer_orders').select('status').eq('id', id).maybeSingle()
+    return order?.status === 'quoted'
+      ? `Order #${id} placed. The price is ready: open My orders to pay.`
+      : `Order #${id} sent. We confirm the price next, and you pay once it is confirmed.`
   })
 }
 

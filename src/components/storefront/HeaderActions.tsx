@@ -128,7 +128,7 @@ function PayOption({ value, label, hint, defaultChecked = false }: { value: stri
 }
 
 function CartPanel({ role }: { role: UserRole | null }) {
-  const { cartOpen, closePanels, lines, setKg, remove, clear, itemFor } = useCart()
+  const { cartOpen, closePanels, lines, setKg, remove, clear, itemFor, deliveryFee } = useCart()
   useEscape(cartOpen, closePanels)
   if (!cartOpen) return null
 
@@ -141,6 +141,7 @@ function CartPanel({ role }: { role: UserRole | null }) {
   const blocked = priced.some((l) => l.problem)
   const total = priced.reduce((s, l) => s + (l.p ? l.p.perKg * l.kg : 0), 0)
   const unpriced = priced.filter((l) => !l.p).length
+  const fullyPriced = unpriced === 0 && deliveryFee !== null
   const message = `Hello ${BRAND_NAME}, I’d like to order: ${lines.map((l) => `${l.name} ${kgLabel(l.kg)}`).join('; ')}.`
 
   return (
@@ -188,14 +189,23 @@ function CartPanel({ role }: { role: UserRole | null }) {
               ))}
             </ul>
             <div className="px-5 py-4 border-t border-[#2f2721] shrink-0 space-y-3">
+              {fullyPriced && (
+                <>
+                  <div className="flex justify-between text-sm text-[#a79c8b]"><span>Cuts</span><span className="tabular-nums">{money(total)}</span></div>
+                  <div className="flex justify-between text-sm text-[#a79c8b]"><span>Delivery</span><span className="tabular-nums">{money(deliveryFee)}</span></div>
+                </>
+              )}
               <div className="flex justify-between font-semibold">
-                <span>{unpriced ? 'Priced items' : 'Total'}</span>
-                <span className="tabular-nums">{money(total)}</span>
+                <span>{unpriced ? 'Priced items' : fullyPriced ? 'Total' : 'Cuts total'}</span>
+                <span className="tabular-nums">{money(fullyPriced ? total + deliveryFee : total)}</span>
               </div>
               {unpriced > 0 && (
                 <p className="text-xs text-[#a79c8b]">
-                  {unpriced} {unpriced === 1 ? 'item has' : 'items have'} no price yet. We confirm those with you. Delivery is confirmed separately.
+                  {unpriced} {unpriced === 1 ? 'item has' : 'items have'} no price yet. We confirm those with you before you pay.
                 </p>
+              )}
+              {unpriced === 0 && deliveryFee === null && (
+                <p className="text-xs text-[#a79c8b]">We confirm the delivery fee with you before you pay.</p>
               )}
               {role === 'customer' ? (
                 <ActionForm
@@ -215,7 +225,7 @@ function CartPanel({ role }: { role: UserRole | null }) {
                     <PayOption value="cash_on_delivery" label="Pay on delivery" hint="Cash or M-Pesa when the meat arrives" />
                   </fieldset>
                   <SubmitButton pendingText="Sending…" disabled={blocked}>Place order</SubmitButton>
-                  <p className="text-xs text-[#a79c8b]">You are not charged until we confirm the price and delivery. Track it under My orders.</p>
+                  <p className="text-xs text-[#a79c8b]">{fullyPriced ? 'You can pay as soon as you place the order. Track it under My orders.' : 'You are not charged until we confirm the price. Track it under My orders.'}</p>
                 </ActionForm>
               ) : role ? (
                 <p className="text-xs text-[#a79c8b]">Ordering in the app is for customer accounts. You can still send this cart to us on WhatsApp.</p>

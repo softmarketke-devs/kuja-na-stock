@@ -19,3 +19,12 @@ export async function saveShopItem(_prev: ActionResult, formData: FormData): Pro
     return 'Saved.'
   })
 }
+
+/** The standard delivery fee every order uses. Orders whose cuts all have prices are priced automatically once it is set. */
+export async function saveDeliveryFee(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
+  return perform(async (supabase) => {
+    const raw = str(formData, 'fee')
+    await rpc(supabase, 'admin_set_delivery_fee', { p_fee: raw === '' ? null : Number(raw) })
+    return 'Delivery fee saved. New orders with priced cuts are now priced automatically.'
+  })
+}

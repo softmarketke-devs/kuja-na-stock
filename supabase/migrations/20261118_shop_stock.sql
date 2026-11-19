@@ -27,21 +27,25 @@ create policy "shop_items_select" on public.shop_items for select to anon, authe
   using (is_active or is_admin());
 -- No insert/update/delete policy on purpose: admins change items through admin_save_shop_item below.
 
--- The cuts from the old hard-coded list, all OFF with no stock so nothing is sold until you set real numbers.
--- Prices already confirmed by the client are filled in.
-insert into public.shop_items (name, blurb, image, price_per_kg, sort_order) values
-  ('Tomahawk', 'Bone-in ribeye, the showpiece.', '/cuts/tomahawk.jpg', null, 10),
-  ('Sirloin on Bone', 'Dry-aged, bone-in.', '/cuts/sirloin-on-bone.jpg', 1420, 20),
-  ('Oxtail', 'Our best seller.', '/cuts/oxtail.jpg', null, 30),
-  ('Mutura', 'Grilled Kenyan sausage, sold as a 1 kg pack.', '/cuts/mutura.png', 1350, 40),
-  ('The Steak Bundle', 'Tomahawk, T-bone and cowboy rib.', '/cuts/the-steak-bundle.jpg', null, 50),
-  ('Cowboy Rib', null, null, null, 60), ('T-bone', null, null, null, 61), ('Ribeye', null, null, null, 62),
-  ('Fillet', null, null, null, 63), ('Short Ribs', null, null, null, 64), ('Brisket', null, null, null, 65),
-  ('Shank', null, null, null, 66), ('Osso Buco', null, null, null, 67), ('Stew Cuts', null, null, null, 68),
-  ('Chunk', null, null, null, 69), ('Minced Meat', null, null, null, 70), ('Liver', null, null, null, 71),
-  ('Kidney', null, null, null, 72), ('Heart', null, null, null, 73), ('Pork Rib-eye Chops', null, null, null, 74),
-  ('Whole Rabbit', null, null, 1550, 75)
+-- The cuts the website has always shown, switched ON so the homepage looks exactly as before. Each starts with
+-- 20 kg as a PLACEHOLDER: open the admin Stock page and set the real kilos before you sell, because customers can
+-- order up to what is listed. Prices already confirmed by the client are filled in; the rest read "Price on confirmation".
+insert into public.shop_items (name, blurb, image, price_per_kg, sort_order, is_active, stock_kg) values
+  ('Tomahawk', 'Bone-in ribeye, the showpiece.', '/cuts/tomahawk.jpg', null, 10, true, 20),
+  ('Sirloin on Bone', 'Dry-aged, bone-in.', '/cuts/sirloin-on-bone.jpg', 1420, 20, true, 20),
+  ('Oxtail', 'Our best seller.', '/cuts/oxtail.jpg', null, 30, true, 20),
+  ('Mutura', 'Grilled Kenyan sausage, sold as a 1 kg pack.', '/cuts/mutura.png', 1350, 40, true, 20),
+  ('The Steak Bundle', 'Tomahawk, T-bone and cowboy rib.', '/cuts/the-steak-bundle.jpg', null, 50, true, 20),
+  ('Cowboy Rib', null, null, null, 60, true, 20), ('T-bone', null, null, null, 61, true, 20), ('Ribeye', null, null, null, 62, true, 20),
+  ('Fillet', null, null, null, 63, true, 20), ('Short Ribs', null, null, null, 64, true, 20), ('Brisket', null, null, null, 65, true, 20),
+  ('Shank', null, null, null, 66, true, 20), ('Osso Buco', null, null, null, 67, true, 20), ('Stew Cuts', null, null, null, 68, true, 20),
+  ('Chunk', null, null, null, 69, true, 20), ('Minced Meat', null, null, null, 70, true, 20), ('Liver', null, null, null, 71, true, 20),
+  ('Kidney', null, null, null, 72, true, 20), ('Heart', null, null, null, 73, true, 20), ('Pork Rib-eye Chops', null, null, null, 74, true, 20),
+  ('Whole Rabbit', null, null, 1550, 75, true, 20)
 on conflict (name) do nothing;
+
+-- If an earlier copy of this file already seeded these cuts switched off, switch the untouched ones on.
+update public.shop_items set is_active = true, stock_kg = 20 where is_active = false and stock_kg = 0 and updated_at = created_at;
 
 -- Admin adds or edits a cut. p_id null = new cut.
 create or replace function public.admin_save_shop_item(

@@ -13,7 +13,7 @@ export const metadata: Metadata = pageMetadata({
 const FAQS: { q: string; a: string }[] = [
   {
     q: 'How do I order?',
-    a: 'Create a customer account, add cuts to your cart and place the order with your delivery address. We confirm the final price and delivery, then you pay. You can also send your cart to us on WhatsApp.',
+    a: 'Create a customer account, add cuts to your cart and place the order with your delivery address. When every cut has a price you see the total straight away and can pay. You can also send your cart to us on WhatsApp.',
   },
   {
     q: 'Do I need an account?',
@@ -21,15 +21,15 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: 'Which cuts do you sell?',
-    a: 'Steaks, ribs, offal, mutura and more. See the list on the home page or use the search. Prices are per kilogram and we confirm them when you order.',
+    a: 'Steaks, ribs, offal, mutura and more. See the list on the home page or use the search. Prices are per kilogram. If a cut shows "Price on confirmation", we confirm its price with you before you pay.',
   },
   {
     q: 'How much is delivery?',
-    a: 'It depends on where you are. We confirm the delivery fee together with the price before you pay.',
+    a: 'One standard delivery fee applies to each order. You see it in your cart before you place the order.',
   },
   {
     q: 'How do I pay?',
-    a: 'You choose at checkout: M-Pesa, or pay on delivery. You only pay after we have confirmed the price.',
+    a: 'You choose at checkout: M-Pesa, or pay on delivery. You pay once the price is shown, which is straight away when every cut in your order has a price.',
   },
   {
     q: 'Can I change or cancel my order?',
