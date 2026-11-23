@@ -134,7 +134,7 @@ Still to do:
 ## Renaming checklist
 
 Code: edit `src/lib/brand.ts`.
-The SMS prefix (now `'BIG: '`) inside `notify()` in `supabase/schema.sql` and `supabase/migrations/20261116c_sms_prefix.sql` (also the Postgres side of the name).
+The SMS prefix (now `'BIG: '`) inside `notify()` in `supabase/schema.sql` (also the Postgres side of the name).
 Static files that cannot import it: `public/manifest.json`, `public/offline.html`, `public/sw.js`
 (cache name `kuja-na-stock-v2`: bump it so old caches are dropped), the icons and `public/logo.*`.
 Outside the repo: GitHub repo name, Vercel project, Supabase project name, SMS sender ID, email templates in

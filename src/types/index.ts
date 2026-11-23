@@ -42,6 +42,16 @@ export interface CustomerOrder {
   created_at: string
 }
 
+export interface MpesaAttempt {
+  id: number
+  order_id: number
+  status: 'pending' | 'paid' | 'failed' | 'paid_needs_review'
+  amount: number
+  receipt: string | null
+  result_desc: string | null
+  created_at: string
+}
+
 export interface Notification {
   id: string
   user_id: string

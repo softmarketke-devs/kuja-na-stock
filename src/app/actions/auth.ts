@@ -8,6 +8,28 @@ import { isKenyanMobile, normalizePhone } from '@/lib/format'
 import { touchSession } from '@/lib/session'
 import type { ActionResult } from '@/types'
 
+/**
+ * The address the person is actually using (localhost while you test, your real domain in production). Links in sign-up,
+ * Google and password-reset emails must go back to THIS address: the login cookie lives on it, so returning to a
+ * different address (like the one in NEXT_PUBLIC_SITE_URL) cannot finish signing in. Supabase's own redirect list
+ * still decides which addresses are allowed.
+ */
+async function siteOrigin() {
+  const h = await headers()
+  const fromOrigin = h.get('origin')
+  if (fromOrigin) {
+    try {
+      const u = new URL(fromOrigin)
+      if (u.protocol === 'http:' || u.protocol === 'https:') return u.origin
+    } catch {
+      /* fall through */
+    }
+  }
+  const host = h.get('x-forwarded-host') ?? h.get('host')
+  if (host) return `${h.get('x-forwarded-proto') ?? (/^localhost|^127\./.test(host) ? 'http' : 'https')}://${host}`
+  return process.env.NEXT_PUBLIC_SITE_URL || ''
+}
+
 function safeNext(next: string) {
   return next.startsWith('/') && !next.startsWith('//') ? next : '/dashboard'
 }
@@ -50,7 +72,7 @@ export async function signUp(_prev: ActionResult, formData: FormData): Promise<A
 
   // Public address the confirmation link should open. Falls back to the
   // address the form was submitted from (localhost in dev).
-  const origin = process.env.NEXT_PUBLIC_SITE_URL || (await headers()).get('origin') || ''
+  const origin = await siteOrigin()
   const supabase = await createClient()
   const { data, error } = await supabase.auth.signUp({
     email: str(formData, 'email'),
@@ -79,7 +101,7 @@ export async function signUp(_prev: ActionResult, formData: FormData): Promise<A
 
 /** Starts Google sign-in. Google must be enabled in Supabase (Authentication, Providers). New Google users become customers. */
 export async function signInWithGoogle(): Promise<ActionResult> {
-  const origin = process.env.NEXT_PUBLIC_SITE_URL || (await headers()).get('origin') || ''
+  const origin = await siteOrigin()
   const supabase = await createClient()
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
@@ -100,7 +122,7 @@ export async function signInWithGoogle(): Promise<ActionResult> {
 export async function requestPasswordReset(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
   const email = str(formData, 'email')
   if (!email.includes('@')) return { ok: false, error: 'Enter the email you signed up with' }
-  const origin = process.env.NEXT_PUBLIC_SITE_URL || (await headers()).get('origin') || ''
+  const origin = await siteOrigin()
   const supabase = await createClient()
   const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${origin}/auth/confirm?next=/reset-password` })
   if (error && /rate|seconds|too many/i.test(error.message)) {

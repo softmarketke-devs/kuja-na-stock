@@ -4,9 +4,10 @@ import { callbackTokenOk } from '@/lib/mpesa'
 
 type Item = { Name: string; Value?: string | number }
 
-// Safaricom posts the result of a payment prompt here. Only a request carrying our secret token is trusted,
-// the order is found by the id we stored when we sent the prompt, and the database refuses a payment that is
-// smaller than the order total. Safaricom expects a 200 with ResultCode 0 whatever we decide.
+// Safaricom posts the answer to a payment prompt here (paid, cancelled, wrong PIN, timed out). Only a request carrying
+// our secret token is trusted. The database does the rest: it finds the prompt by Safaricom's id, marks the order paid
+// when the amount covers it, and otherwise flags the payment for the owner to review instead of dropping it.
+// Safaricom expects a 200 with ResultCode 0 whatever we decide.
 export async function POST(request: NextRequest) {
   const ok = NextResponse.json({ ResultCode: 0, ResultDesc: 'Accepted' })
   if (!callbackTokenOk(request.nextUrl.searchParams.get('token'))) {
@@ -15,18 +16,20 @@ export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null)
   const cb = body?.Body?.stkCallback
   if (!cb?.CheckoutRequestID) return ok
-  if (cb.ResultCode !== 0) return ok // cancelled, wrong PIN or timed out: the order stays unpaid and the customer can try again
 
   const items: Item[] = cb.CallbackMetadata?.Item ?? []
   const get = (n: string) => items.find((i) => i.Name === n)?.Value
   const amount = Number(get('Amount'))
-  const receipt = String(get('MpesaReceiptNumber') ?? '')
-  if (!receipt || !Number.isFinite(amount)) return ok
+  const receipt = get('MpesaReceiptNumber')
 
-  const admin = createAdminClient()
-  const { data: order } = await admin.from('customer_orders').select('id').eq('mpesa_checkout_id', cb.CheckoutRequestID).maybeSingle()
-  if (!order) return ok
-  const { error } = await admin.rpc('mark_customer_order_paid', { p_order_id: order.id, p_receipt: receipt, p_amount: amount })
-  if (error) console.error('[mpesa] could not record payment for order', order.id, error.message)
+  const { data, error } = await createAdminClient().rpc('apply_mpesa_result', {
+    p_checkout_id: String(cb.CheckoutRequestID),
+    p_result_code: Number(cb.ResultCode ?? 1),
+    p_desc: typeof cb.ResultDesc === 'string' ? cb.ResultDesc : null,
+    p_amount: Number.isFinite(amount) ? amount : null,
+    p_receipt: receipt === undefined ? null : String(receipt),
+  })
+  if (error) console.error('[mpesa] could not record the answer for', cb.CheckoutRequestID, error.message)
+  else if (data === 'needs_review') console.warn('[mpesa] a payment needs the owner to review it:', cb.CheckoutRequestID)
   return ok
 }

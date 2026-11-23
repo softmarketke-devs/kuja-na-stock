@@ -58,17 +58,19 @@ src/app/            pages, Server Actions, cron routes, terms, privacy
 src/components/     shared UI
 src/lib/            Supabase clients, auth, SMS, constants, brand
 src/proxy.ts        session refresh and sign-in redirects
-supabase/schema.sql tables, functions, RLS, grants, seed data
+supabase/schema.sql the whole database in one script: tables, functions, rules, seed data
+supabase/make_admin.sql makes your account the shop owner (run once)
+supabase/archive/   old scripts, history only: never run
 ```
 
 ## Run it
 
-1. In an **empty** Supabase project, run all of `supabase/schema.sql` in the SQL editor. The file only creates objects and never drops any, so on a project that already has them it stops with an "already exists" error. If the project already has the schema, run the files in `supabase/migrations/` instead.
+1. In Supabase → SQL Editor, run all of `supabase/schema.sql`. It works on a new project and on one that already has an older version of this database, and it is safe to run again. It also deletes the old butchery / supplier / carrier data, so take a backup first (Database → Backups).
 2. In Supabase → Authentication → URL configuration, add `http://localhost:3000/auth/confirm` and `https://kuja-na-stock.vercel.app/auth/confirm`, and set Site URL to the production address.
 3. Copy `.env.example` to `.env.local` and fill it in.
 4. `npm install`, then `npm run dev`.
-5. Make an admin: `update profiles set role = 'admin' where id = '…';`
-6. Try the full flow: sign up a butchery, a supplier and a carrier with locations a few km apart. As admin, check the carrier's permit. Then add a listing, order, confirm, accept, pick up, and enter the code.
+5. Make yourself the shop owner: edit your email into `supabase/make_admin.sql` and run it, then sign out and back in.
+6. Try the full flow: as the owner, open Stock, set the delivery fee and kilos, and add prices. Sign up as a customer, add cuts to the cart, place an order, then open My orders to pay.
 
 Production: https://kuja-na-stock.vercel.app. Deploy on Vercel with the same env vars, including `NEXT_PUBLIC_SITE_URL`; the crons in `vercel.json` are picked up automatically.
 

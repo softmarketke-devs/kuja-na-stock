@@ -23,14 +23,38 @@ export function mpesaConfigured() {
   return Boolean(e.key && e.secret && e.shortcode && e.passkey && e.callback && e.callbackSecret)
 }
 
+// What the customer is told. The real reason goes to the server log (see logFailure), because customers cannot act on it.
+const TRY_AGAIN = 'M-Pesa could not start the payment just now. Please try again in a minute, or choose pay on delivery.'
+
+/** Writes the real M-Pesa answer to the server log, so the owner can see why a payment would not start. */
+function logFailure(step: string, status: number, body: string) {
+  const asPage = body.trimStart().startsWith('<')
+  const hint =
+    asPage ? 'Safaricom returned a web page (its protection layer blocked this server). Try again later; if it keeps happening, ask Safaricom to allow your server.'
+    : /404\.001\.03|Invalid Access Token/i.test(body) ? 'The Daraja app was refused: switch on the "M-Pesa Express" (STK Push) product for this app in the Daraja portal, and make sure the key/secret belong to that app.'
+    : /400\.002\.02|Bad Request - Invalid/i.test(body) ? 'Safaricom rejected a field. Check the shortcode, passkey and callback address.'
+    : ''
+  console.error(`[mpesa] ${step} failed (HTTP ${status}). ${hint} Response: ${asPage ? '(web page)' : body.slice(0, 300)}`)
+}
+
 async function accessToken() {
   const e = env()
   const res = await fetch(`${e.base}/oauth/v1/generate?grant_type=client_credentials`, {
     headers: { Authorization: `Basic ${Buffer.from(`${e.key}:${e.secret}`).toString('base64')}` },
     cache: 'no-store',
   })
-  if (!res.ok) throw new Error('Could not reach M-Pesa. Try again in a moment')
-  return ((await res.json()) as { access_token: string }).access_token
+  const text = await res.text()
+  let token: string | undefined
+  try {
+    token = (JSON.parse(text) as { access_token?: string }).access_token
+  } catch {
+    /* a web page, handled below */
+  }
+  if (!res.ok || !token) {
+    logFailure('getting an access token', res.status, text)
+    throw new Error(TRY_AGAIN)
+  }
+  return token
 }
 
 // Daraja wants the time as YYYYMMDDHHmmss in Nairobi time.
@@ -42,15 +66,16 @@ function timestamp() {
   return `${g('year')}${g('month')}${g('day')}${g('hour')}${g('minute')}${g('second')}`
 }
 
-/** Sends the payment prompt. Returns Safaricom's CheckoutRequestID, which the callback uses to find the order. */
+/** Sends the payment prompt. Returns Safaricom's CheckoutRequestID, which the callback uses to find the payment. */
 export async function stkPush({ phone, amount, orderId }: { phone: string; amount: number; orderId: number }) {
   const e = env()
-  const ts = timestamp()
   const msisdn = phone.replace(/\D/g, '')
-  if (!/^254[17]\d{8}$/.test(msisdn)) throw new Error('The phone number on your account is not a valid Kenyan mobile number')
+  if (!/^254[17]\d{8}$/.test(msisdn)) throw new Error('The phone number on your account is not a valid Kenyan mobile number. Fix it on your account page.')
+  const ts = timestamp()
+  const token = await accessToken()
   const res = await fetch(`${e.base}/mpesa/stkpush/v1/processrequest`, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${await accessToken()}`, 'Content-Type': 'application/json' },
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       BusinessShortCode: e.shortcode,
       Password: Buffer.from(`${e.shortcode}${e.passkey}${ts}`).toString('base64'),
@@ -66,9 +91,16 @@ export async function stkPush({ phone, amount, orderId }: { phone: string; amoun
     }),
     cache: 'no-store',
   })
-  const body = (await res.json().catch(() => ({}))) as { ResponseCode?: string; CheckoutRequestID?: string; errorMessage?: string; ResponseDescription?: string }
+  const text = await res.text()
+  let body: { ResponseCode?: string; CheckoutRequestID?: string } = {}
+  try {
+    body = JSON.parse(text)
+  } catch {
+    /* a web page, handled below */
+  }
   if (!res.ok || body.ResponseCode !== '0' || !body.CheckoutRequestID) {
-    throw new Error(body.errorMessage || body.ResponseDescription || 'M-Pesa did not accept the request')
+    logFailure('sending the payment prompt', res.status, text)
+    throw new Error(TRY_AGAIN)
   }
   return body.CheckoutRequestID
 }
