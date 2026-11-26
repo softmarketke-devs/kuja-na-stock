@@ -38,14 +38,24 @@ export async function payWithMpesa(_prev: ActionResult, formData: FormData): Pro
     const { data: begun, error } = await admin.rpc('begin_mpesa_attempt', { p_order_id: id, p_customer: userId })
     const attempt = (begun as { o_attempt_id: number; o_amount: number; o_phone: string }[] | null)?.[0]
     if (error || !attempt) throw new Error(error?.message || 'This order is not ready to pay')
+    const attemptId = attempt.o_attempt_id
     let checkoutId: string
     try {
       checkoutId = await stkPush({ phone: attempt.o_phone, amount: Number(attempt.o_amount), orderId: id })
     } catch (e) {
-      await admin.rpc('fail_mpesa_attempt', { p_attempt_id: attempt.o_attempt_id, p_reason: e instanceof Error ? e.message : 'Could not send the prompt' })
+      // Whatever went wrong, close the attempt so the customer can retry. If the prompt did in fact go out (a slow
+      // request we gave up on), the database still accepts a payment that arrives for it later.
+      const { error: failErr } = await admin.rpc('fail_mpesa_attempt', { p_attempt_id: attemptId, p_reason: e instanceof Error ? e.message : 'Could not send the prompt' })
+      if (failErr) console.error('[mpesa] could not mark attempt', attemptId, 'failed:', failErr.message)
       throw e
     }
-    await admin.rpc('set_mpesa_attempt_checkout', { p_attempt_id: attempt.o_attempt_id, p_checkout_id: checkoutId })
+    // Store Safaricom's id so the callback can find this attempt. The database also applies any answer that beat us
+    // here. The prompt is already on the customer's phone, so a storage hiccup is retried, never shown as a failure.
+    let stored = await admin.rpc('set_mpesa_attempt_checkout', { p_attempt_id: attemptId, p_checkout_id: checkoutId })
+    if (stored.error) stored = await admin.rpc('set_mpesa_attempt_checkout', { p_attempt_id: attemptId, p_checkout_id: checkoutId })
+    if (stored.error || stored.data === 'not_set') {
+      console.error('[mpesa] could not store checkout id', checkoutId, 'for attempt', attemptId, stored.error?.message ?? '(already set elsewhere)')
+    }
     return 'Check your phone and enter your M-Pesa PIN. This page updates when the payment arrives.'
   })
 }

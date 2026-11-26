@@ -11,9 +11,10 @@ const QUICK = ['2kg ribeye and 1kg oxtail', 'What is in my cart?', 'Checkout']
 
 // Words people use that are not the exact cut name on the menu.
 const ALIASES: Record<string, string> = {
-  'rib eye': 'Ribeye', 'rib-eye': 'Ribeye', steak: 'The Steak Bundle', tbone: 'T-bone', 't bone': 'T-bone',
-  mince: 'Minced Meat', minced: 'Minced Meat', 'ox tail': 'Oxtail', 'short rib': 'Short Ribs', 'stew': 'Stew Cuts',
-  rabbit: 'Whole Rabbit', 'cowboy': 'Cowboy Rib', 'sirloin': 'Sirloin on Bone', 'osso bucco': 'Osso Buco',
+  'rib eye': 'Ribeye', 'rib-eye': 'Ribeye', steak: 'Sirloin Steak', tbone: 'T-bone', 't bone': 'T-bone',
+  mince: 'Minced Meat', minced: 'Minced Meat', 'ox tail': 'Oxtail', 'short rib': 'Short Ribs', 'stew': 'Beef Cubes',
+  sirloin: 'Sirloin Steak', 'osso bucco': 'Osso Buco', tenderloin: 'Fillet', wings: 'Chicken Wings', thighs: 'Chicken Thighs',
+  drumsticks: 'Chicken Drumsticks', 'chicken breast': 'Chicken Breast / Boneless', 'new york': 'New York Strip Steak',
 }
 
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9.\s-]/g, ' ').replace(/\s+/g, ' ').trim()

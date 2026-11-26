@@ -304,6 +304,7 @@ create table if not exists public.shop_items (
   name text not null unique check (length(btrim(name)) between 1 and 60),
   blurb text,
   image text,                                                  -- path under /public, e.g. /cuts/tomahawk.jpg
+  category text,                                               -- menu section (see src/lib/menu-categories.ts)
   price_per_kg numeric(10,2) check (price_per_kg > 0),         -- empty = "price confirmed when you order"
   stock_kg numeric(10,1) not null default 0 check (stock_kg >= 0),
   is_active boolean not null default false,                    -- off = hidden from the website
@@ -311,6 +312,7 @@ create table if not exists public.shop_items (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+alter table public.shop_items add column if not exists category text;
 alter table public.shop_items enable row level security;
 drop policy if exists "shop_items_select" on public.shop_items;
 -- Everyone (signed in or not) sees the cuts that are switched on; admins see all of them.
@@ -326,22 +328,9 @@ alter table public.shop_settings enable row level security;
 drop policy if exists "shop_settings_select" on public.shop_settings;
 create policy "shop_settings_select" on public.shop_settings for select to anon, authenticated using (true);
 
--- The cuts the website has always shown, switched ON so the homepage looks as before. Each starts with 20 kg as a
--- PLACEHOLDER: set the real kilos on the admin Stock page before you sell. Prices are only the ones the client has
--- confirmed; the rest read "Price on confirmation". Cuts that already exist are left exactly as you set them.
-insert into public.shop_items (name, blurb, image, price_per_kg, sort_order, is_active, stock_kg) values
-  ('Tomahawk', 'Bone-in ribeye, the showpiece.', '/cuts/tomahawk.jpg', null, 10, true, 20),
-  ('Sirloin on Bone', 'Dry-aged, bone-in.', '/cuts/sirloin-on-bone.jpg', 1420, 20, true, 20),
-  ('Oxtail', 'Our best seller.', '/cuts/oxtail.jpg', null, 30, true, 20),
-  ('Mutura', 'Grilled Kenyan sausage, sold as a 1 kg pack.', '/cuts/mutura.png', 1350, 40, true, 20),
-  ('The Steak Bundle', 'Tomahawk, T-bone and cowboy rib.', '/cuts/the-steak-bundle.jpg', null, 50, true, 20),
-  ('Cowboy Rib', null, null, null, 60, true, 20), ('T-bone', null, null, null, 61, true, 20), ('Ribeye', null, null, null, 62, true, 20),
-  ('Fillet', null, null, null, 63, true, 20), ('Short Ribs', null, null, null, 64, true, 20), ('Brisket', null, null, null, 65, true, 20),
-  ('Shank', null, null, null, 66, true, 20), ('Osso Buco', null, null, null, 67, true, 20), ('Stew Cuts', null, null, null, 68, true, 20),
-  ('Chunk', null, null, null, 69, true, 20), ('Minced Meat', null, null, null, 70, true, 20), ('Liver', null, null, null, 71, true, 20),
-  ('Kidney', null, null, null, 72, true, 20), ('Heart', null, null, null, 73, true, 20), ('Pork Rib-eye Chops', null, null, null, 74, true, 20),
-  ('Whole Rabbit', null, null, 1550, 75, true, 20)
-on conflict (name) do nothing;
+-- The cuts and prices live in supabase/menu_update.sql (run it after this script, and again whenever the menu changes).
+-- Until it has run, the website shows the fallback list in src/lib/default-items.ts.
+
 
 -- ---------------------------------------------------------------------------------------------------------------------
 -- 6. Customer orders
@@ -396,6 +385,20 @@ create table if not exists public.mpesa_attempts (
   resolved_at timestamptz
 );
 create index if not exists mpesa_attempts_order_idx on public.mpesa_attempts (order_id, created_at desc);
+
+-- Safaricom's answer can reach us before we have stored the checkout id of the prompt (the callback races our own
+-- database write). An answer that matches no attempt is parked here and applied the moment the id is stored, so a real
+-- payment is never dropped. Server only: RLS is on and no policy exists.
+create table if not exists public.mpesa_pending_callbacks (
+  checkout_id text primary key,               -- one row per Safaricom prompt: a replayed callback does not add another
+  result_code int not null,
+  result_desc text,
+  amount numeric(10,2),
+  receipt text,
+  received_at timestamptz not null default now(),
+  applied_at timestamptz                      -- null = still waiting for its attempt
+);
+alter table public.mpesa_pending_callbacks enable row level security;
 alter table public.mpesa_attempts enable row level security;
 drop policy if exists "mpesa_attempts_select" on public.mpesa_attempts;
 create policy "mpesa_attempts_select" on public.mpesa_attempts for select to authenticated
@@ -405,8 +408,9 @@ create policy "mpesa_attempts_select" on public.mpesa_attempts for select to aut
 -- 7. What customers and the owner can DO (each checks who is calling)
 -- ---------------------------------------------------------------------------------------------------------------------
 -- Owner: add or edit a cut. p_id null = a new cut.
+drop function if exists public.admin_save_shop_item(uuid, text, text, numeric, numeric, boolean);
 create or replace function public.admin_save_shop_item(
-  p_id uuid, p_name text, p_blurb text, p_price numeric, p_stock numeric, p_active boolean
+  p_id uuid, p_name text, p_blurb text, p_price numeric, p_stock numeric, p_active boolean, p_category text default null
 ) returns uuid language plpgsql security definer
 set search_path = public
 as $$
@@ -419,13 +423,13 @@ begin
   if p_stock is null or p_stock < 0 or p_stock > 100000 then raise exception 'Enter the kilos in stock (0 or more)'; end if;
   if coalesce(p_active, false) and p_price is null then raise exception 'Set a price before switching a cut on'; end if;
   if p_id is null then
-    insert into shop_items (name, blurb, price_per_kg, stock_kg, is_active)
-    values (btrim(p_name), nullif(btrim(p_blurb), ''), p_price, p_stock, coalesce(p_active, false))
+    insert into shop_items (name, blurb, price_per_kg, stock_kg, is_active, category)
+    values (btrim(p_name), nullif(btrim(p_blurb), ''), p_price, p_stock, coalesce(p_active, false), nullif(btrim(p_category), ''))
     returning id into v_id;
   else
     update shop_items
        set name = btrim(p_name), blurb = nullif(btrim(p_blurb), ''), price_per_kg = p_price, stock_kg = p_stock,
-           is_active = coalesce(p_active, false), updated_at = now()
+           is_active = coalesce(p_active, false), category = nullif(btrim(p_category), ''), updated_at = now()
      where id = p_id returning id into v_id;
     if v_id is null then raise exception 'That cut no longer exists'; end if;
   end if;
@@ -621,11 +625,31 @@ begin
 end
 $$;
 
--- Step 2: Safaricom accepted the prompt (or it could not be sent).
+-- Step 2: Safaricom accepted the prompt. Stores its id, then applies any answer that already arrived for it.
+-- The advisory lock (same one apply_mpesa_result takes) makes "answer parked" and "id stored" strictly ordered, so
+-- one of them always sees the other and the answer cannot be missed.
+drop function if exists public.set_mpesa_attempt_checkout(bigint, text);
 create or replace function public.set_mpesa_attempt_checkout(p_attempt_id bigint, p_checkout_id text)
-returns void language sql security definer
+returns text language plpgsql security definer
 set search_path = public
-as $$ update mpesa_attempts set checkout_id = p_checkout_id where id = p_attempt_id and checkout_id is null $$;
+as $$
+declare
+  v_p mpesa_pending_callbacks;
+  v_res text := 'ok';
+begin
+  perform pg_advisory_xact_lock(hashtext('mpesa:' || p_checkout_id));
+  update mpesa_attempts set checkout_id = p_checkout_id where id = p_attempt_id and checkout_id is null;
+  if not found then return 'not_set'; end if;
+  select * into v_p from mpesa_pending_callbacks where checkout_id = p_checkout_id and applied_at is null for update;
+  if found then
+    v_res := apply_mpesa_result(p_checkout_id, v_p.result_code, v_p.result_desc, v_p.amount, v_p.receipt);
+    update mpesa_pending_callbacks set applied_at = now() where checkout_id = p_checkout_id;
+  end if;
+  return v_res;
+exception when unique_violation then
+  return 'not_set';
+end
+$$;
 
 create or replace function public.fail_mpesa_attempt(p_attempt_id bigint, p_reason text)
 returns void language sql security definer
@@ -634,7 +658,10 @@ as $$ update mpesa_attempts set status = 'failed', result_desc = left(p_reason, 
 
 -- Step 3: Safaricom's answer arrives. A cancelled or timed-out prompt just marks the attempt failed. A real payment
 -- marks the order paid when it still can be; otherwise it is flagged for the owner to refund or sort out, never lost.
--- Safe if Safaricom sends the same answer twice.
+-- Safe if Safaricom sends the same answer twice. Returns: stored (no attempt yet, parked), failed, paid, needs_review,
+-- or "already <status>" for a repeat.
+-- A payment for an attempt we had already marked failed (we gave up on a slow request, but the prompt did go out) is
+-- still honoured. Only a settled attempt (paid / needs review) ignores a repeat.
 create or replace function public.apply_mpesa_result(p_checkout_id text, p_result_code int, p_desc text, p_amount numeric, p_receipt text)
 returns text language plpgsql security definer
 set search_path = public
@@ -645,9 +672,16 @@ declare
   v_total numeric;
   v_admin uuid;
 begin
+  perform pg_advisory_xact_lock(hashtext('mpesa:' || p_checkout_id));
   select * into v_a from mpesa_attempts where checkout_id = p_checkout_id for update;
-  if not found then return 'unknown'; end if;
-  if v_a.status <> 'pending' then return 'already ' || v_a.status; end if;
+  if not found then
+    insert into mpesa_pending_callbacks (checkout_id, result_code, result_desc, amount, receipt)
+    values (p_checkout_id, p_result_code, left(p_desc, 200), p_amount, p_receipt)
+    on conflict (checkout_id) do nothing;
+    return 'stored';
+  end if;
+  if v_a.status in ('paid', 'paid_needs_review') then return 'already ' || v_a.status; end if;
+  if v_a.status = 'failed' and p_result_code <> 0 then return 'already failed'; end if;
 
   if p_result_code <> 0 then
     update mpesa_attempts set status = 'failed', result_desc = left(coalesce(p_desc, 'Payment was not completed'), 200), resolved_at = now() where id = v_a.id;
@@ -656,20 +690,20 @@ begin
 
   select * into v_o from customer_orders where id = v_a.order_id for update;
   v_total := coalesce(v_o.items_total_kes, 0) + coalesce(v_o.delivery_fee_kes, 0);
-  if v_o.status = 'quoted' and p_amount >= v_total then
+  if v_o.status = 'quoted' and p_amount is not null and p_amount >= v_total then
     update customer_orders set status = 'paid', mpesa_receipt = p_receipt, paid_at = now(), updated_at = now() where id = v_o.id;
-    update mpesa_attempts set status = 'paid', receipt = p_receipt, resolved_at = now() where id = v_a.id;
+    update mpesa_attempts set status = 'paid', receipt = p_receipt, result_desc = null, resolved_at = now() where id = v_a.id;
     perform notify(v_o.customer_id, 'customer_order', 'Payment received for order #' || v_o.id,
-      'M-Pesa code ' || p_receipt || '. We will deliver your order soon.', jsonb_build_object('customer_order_id', v_o.id), true);
+      'M-Pesa code ' || coalesce(p_receipt, '(none)') || '. We will deliver your order soon.', jsonb_build_object('customer_order_id', v_o.id), true);
     return 'paid';
   end if;
 
   update mpesa_attempts set status = 'paid_needs_review', receipt = p_receipt, resolved_at = now(),
-         result_desc = 'Order was ' || v_o.status || '; received ' || p_amount || ', order total ' || v_total
+         result_desc = 'Order was ' || v_o.status || '; received ' || coalesce(p_amount::text, 'unknown amount') || ', order total ' || v_total
    where id = v_a.id;
   for v_admin in select id from profiles where role = 'admin' loop
     perform notify(v_admin, 'customer_order', 'M-Pesa payment needs review: order #' || v_o.id,
-      'KSh ' || p_amount || ' arrived (M-Pesa code ' || p_receipt || ') but the order is ' || v_o.status || '. Refund it or fix the order.',
+      'KSh ' || coalesce(p_amount::text, '?') || ' arrived (M-Pesa code ' || coalesce(p_receipt, 'none') || ') but the order is ' || v_o.status || '. Refund it or fix the order.',
       jsonb_build_object('customer_order_id', v_o.id), false);
   end loop;
   return 'needs_review';
@@ -680,7 +714,7 @@ $$;
 -- 8. Who may call what
 -- ---------------------------------------------------------------------------------------------------------------------
 -- Tables are only changed through the functions above, never directly.
-revoke insert, update, delete on public.customer_orders, public.shop_items, public.shop_settings, public.mpesa_attempts from anon, authenticated;
+revoke insert, update, delete on public.customer_orders, public.shop_items, public.shop_settings, public.mpesa_attempts, public.mpesa_pending_callbacks from anon, authenticated;
 
 -- Internal helpers: never callable from the website.
 revoke execute on function
@@ -713,7 +747,7 @@ revoke execute on function
   public.customer_cancel_order(bigint),
   public.admin_quote_customer_order(bigint, numeric, numeric),
   public.admin_set_customer_order_status(bigint, text),
-  public.admin_save_shop_item(uuid, text, text, numeric, numeric, boolean),
+  public.admin_save_shop_item(uuid, text, text, numeric, numeric, boolean, text),
   public.admin_set_delivery_fee(numeric)
 from public, anon;
 grant execute on function
@@ -721,7 +755,7 @@ grant execute on function
   public.customer_cancel_order(bigint),
   public.admin_quote_customer_order(bigint, numeric, numeric),
   public.admin_set_customer_order_status(bigint, text),
-  public.admin_save_shop_item(uuid, text, text, numeric, numeric, boolean),
+  public.admin_save_shop_item(uuid, text, text, numeric, numeric, boolean, text),
   public.admin_set_delivery_fee(numeric)
 to authenticated;
 

@@ -17,6 +17,7 @@ export interface ShopItem {
   name: string
   blurb: string | null
   image: string | null
+  category?: string | null
   price_per_kg: number | null
   stock_kg: number
   is_active: boolean

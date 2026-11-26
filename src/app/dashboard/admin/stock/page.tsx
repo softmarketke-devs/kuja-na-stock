@@ -4,13 +4,14 @@ import { saveDeliveryFee, saveShopItem } from '@/app/actions/shop'
 import { getDeliveryFee } from '@/lib/shop'
 import { ActionForm, SubmitButton } from '@/components/ActionForm'
 import { Badge, Card, SectionTitle, inputClass, labelClass } from '@/components/ui'
+import { MENU_CATEGORIES } from '@/lib/menu-categories'
 import type { ShopItem } from '@/types'
 
 export default async function StockPage() {
   await requireProfile('admin')
   const supabase = await createClient()
   // Admins can read every cut, including the ones switched off.
-  const { data } = await supabase.from('shop_items').select('id, name, blurb, image, price_per_kg, stock_kg, is_active').order('sort_order').order('name')
+  const { data } = await supabase.from('shop_items').select('id, name, blurb, image, category, price_per_kg, stock_kg, is_active').order('sort_order').order('name')
   const items = (data ?? []) as ShopItem[]
   const fee = await getDeliveryFee()
 
@@ -78,6 +79,13 @@ function ItemForm({ item }: { item?: ShopItem }) {
       <div>
         <label className={labelClass} htmlFor={`s-${k}`}>Kilos in stock</label>
         <input id={`s-${k}`} name="stock" type="number" min={0} step="0.5" required defaultValue={item?.stock_kg ?? 0} className={inputClass} />
+      </div>
+      <div className="col-span-2">
+        <label className={labelClass} htmlFor={`c-${k}`}>Menu section</label>
+        <select id={`c-${k}`} name="category" defaultValue={item?.category ?? ''} className={inputClass}>
+          <option value="">No section</option>
+          {MENU_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+        </select>
       </div>
       <div className="col-span-2">
         <label className={labelClass} htmlFor={`b-${k}`}>Short description (optional)</label>

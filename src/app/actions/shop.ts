@@ -15,6 +15,7 @@ export async function saveShopItem(_prev: ActionResult, formData: FormData): Pro
       p_price: priceRaw === '' ? null : Number(priceRaw),
       p_stock: stockRaw === '' ? null : Number(stockRaw),
       p_active: formData.get('active') === 'on',
+      p_category: str(formData, 'category') || null,
     })
     return 'Saved.'
   })

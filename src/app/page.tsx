@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { BRAND_NAME, BRAND_TAGLINE, INSTAGRAM_URL, SITE_URL, SUPPORT_WHATSAPP } from '@/lib/brand'
 import { SocialLinks } from '@/components/SocialLinks'
 import { getDeliveryFee, getShopItems } from '@/lib/shop'
+import { MENU_CATEGORIES, UNCATEGORISED } from '@/lib/menu-categories'
 import { SteakMap } from '@/components/landing/SteakMap'
 import { AccountMenu } from '@/components/AccountMenu'
 import { HeaderActions } from '@/components/storefront/HeaderActions'
@@ -33,6 +34,11 @@ const ORG_JSON_LD = {
 export default async function Home() {
   const [profile, items, deliveryFee] = await Promise.all([getProfile(), getShopItems(), getDeliveryFee()])
   const featured = items.filter((i) => i.image).slice(0, 5)
+  // The full list, grouped by menu section in menu order; cuts with no section go last.
+  const known = MENU_CATEGORIES as readonly string[]
+  const sections = [...MENU_CATEGORIES, UNCATEGORISED]
+    .map((name) => ({ name, items: items.filter((i) => (name === UNCATEGORISED ? !i.category || !known.includes(i.category) : i.category === name)) }))
+    .filter((s) => s.items.length > 0)
   return (
     <CartProvider items={items} deliveryFee={deliveryFee}>
     <div className="min-h-screen flex flex-col">
@@ -90,14 +96,21 @@ export default async function Home() {
                 </div>
                 <details className="mt-6 border-t border-slate-200 pt-3" open={featured.length === 0}>
                   <summary className="font-display font-semibold text-lg cursor-pointer">See all our cuts</summary>
-                  <div className="mt-3 md:columns-2 gap-10">
-                    {items.map((i) => (
-                      <div key={i.id} className="break-inside-avoid flex justify-between gap-3 py-2 border-b border-slate-200 text-[15px]">
-                        <span>
-                          {i.name}
-                          <small className="block text-slate-500">{price(i.price_per_kg)}</small>
-                        </span>
-                        <AddToCart name={i.name} />
+                  <div className="mt-3 space-y-8">
+                    {sections.map((sec) => (
+                      <div key={sec.name}>
+                        <h3 className="font-display font-semibold text-base uppercase tracking-wide text-slate-500 mb-1">{sec.name}</h3>
+                        <div className="md:columns-2 gap-10">
+                          {sec.items.map((i) => (
+                            <div key={i.id} className="break-inside-avoid flex justify-between gap-3 py-2 border-b border-slate-200 text-[15px]">
+                              <span>
+                                {i.name}
+                                <small className="block text-slate-500">{price(i.price_per_kg)}</small>
+                              </span>
+                              <AddToCart name={i.name} />
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     ))}
                   </div>

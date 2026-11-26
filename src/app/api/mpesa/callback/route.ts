@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
     p_receipt: receipt === undefined ? null : String(receipt),
   })
   if (error) console.error('[mpesa] could not record the answer for', cb.CheckoutRequestID, error.message)
+  else if (data === 'stored') console.warn('[mpesa] answer arrived before its prompt was stored; kept to apply when it is:', cb.CheckoutRequestID)
   else if (data === 'needs_review') console.warn('[mpesa] a payment needs the owner to review it:', cb.CheckoutRequestID)
   return ok
 }

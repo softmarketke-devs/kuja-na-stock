@@ -42,6 +42,10 @@ async function accessToken() {
   const res = await fetch(`${e.base}/oauth/v1/generate?grant_type=client_credentials`, {
     headers: { Authorization: `Basic ${Buffer.from(`${e.key}:${e.secret}`).toString('base64')}` },
     cache: 'no-store',
+    signal: AbortSignal.timeout(15000),
+  }).catch((err) => {
+    logFailure('getting an access token', 0, String(err))
+    throw new Error(TRY_AGAIN)
   })
   const text = await res.text()
   let token: string | undefined
@@ -90,6 +94,12 @@ export async function stkPush({ phone, amount, orderId }: { phone: string; amoun
       TransactionDesc: `Order ${orderId}`,
     }),
     cache: 'no-store',
+    signal: AbortSignal.timeout(15000),
+  }).catch((err) => {
+    // Timed out or dropped: the prompt may still have reached the phone. The attempt is closed as failed, and the
+    // database still accepts a payment that arrives for it later.
+    logFailure('sending the payment prompt', 0, String(err))
+    throw new Error(TRY_AGAIN)
   })
   const text = await res.text()
   let body: { ResponseCode?: string; CheckoutRequestID?: string } = {}

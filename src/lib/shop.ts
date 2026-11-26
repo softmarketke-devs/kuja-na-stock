@@ -19,7 +19,7 @@ export async function getShopItems(): Promise<ShopItem[]> {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('shop_items')
-    .select('id, name, blurb, image, price_per_kg, stock_kg, is_active')
+    .select('id, name, blurb, image, category, price_per_kg, stock_kg, is_active')
     .eq('is_active', true)
     .order('sort_order')
     .order('name')
