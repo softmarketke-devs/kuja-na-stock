@@ -21,7 +21,7 @@ Order matters: name and domain first (everything else hangs off them), then veri
 - [x] `carrier_block_reason` now also requires `is_verified`, so an unchecked carrier cannot be offered or accept a run.
       **Schema change, not yet run against a database.**
 - [x] Draft `/terms` and `/privacy` pages, linked from the footer and signup. Drafts only. See "Needs a human".
-- [x] `metadataBase` reads `NEXT_PUBLIC_SITE_URL` with a fallback of the production URL `https://kuja-na-stock.vercel.app` (live as of 2026-10-29).
+- [x] `metadataBase` reads `NEXT_PUBLIC_SITE_URL` with a fallback of the production URL `https://big-premium-cuts.vercel.app` (live as of 2026-10-29).
 - [x] README duplicate lines removed; "Not built yet" updated; CHANGELOG has an Unreleased entry.
 - [x] `npx eslint src`, `npx tsc --noEmit` and `next build` pass. The SQL changes are NOT tested: no Postgres here.
 
@@ -34,8 +34,8 @@ Order matters: name and domain first (everything else hangs off them), then veri
 
 1. **Choose the name.** The old name "Kuja Na Stock" came from the produce/kiosk version and has been replaced by "BIG Premium Cuts". Check domain, trademark (KIPI) and
    social handles before committing. Do this before buying the domain or registering the SMS sender ID.
-2. **Wire the production URL** `https://kuja-na-stock.vercel.app`: in Vercel set `NEXT_PUBLIC_SITE_URL` to it, and in
-   Supabase → Authentication → URL Configuration set Site URL to it and add `https://kuja-na-stock.vercel.app/auth/confirm`
+2. **Wire the production URL** `https://big-premium-cuts.vercel.app`: in Vercel set `NEXT_PUBLIC_SITE_URL` to it, and in
+   Supabase → Authentication → URL Configuration set Site URL to it and add `https://big-premium-cuts.vercel.app/auth/confirm`
    (keep `http://localhost:3000/auth/confirm` for local work). Redeploy after changing env vars. Buying a custom domain
    later means repeating this with the new address.
 3. **Database changes. Applied 2026-10-29** (39 products, `admin_set_carrier_verified` present). Original steps, kept for reference: The project in `.env.local` already has the v0.6.0 schema (checked 2026-10-29 with
